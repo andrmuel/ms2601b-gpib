@@ -44,7 +44,7 @@ class PrologixGPIB:
 		self.device.close()
 
 	def write(self, string):
-		print "OUT: "+string
+		print "OUT: "+string,
 		self.device.write(string)
 
 	def read(self):
@@ -84,6 +84,12 @@ class PrologixGPIB:
 
 	def set_gpib_eoi(self, enabled):
 		self.send_prologix_command("eoi %d" % int(enabled))
+
+	def set_loc(self):
+		"""
+		Enable front panel operation of the currently addressed instrument.
+		"""
+		self.send_prologix_command("loc")
 	
 	def gpib_send(self, command):
 		self.write("%s\n" % command)
@@ -91,11 +97,6 @@ class PrologixGPIB:
 	def gpib_send_clr(self):
 		self.send_prologix_command("clr")
 	
-	def gpib_send_loc(self):
-		"""
-		Enable front panel operation of the currently addressed instrument.
-		"""
-		self.send_prologix_command("loc")
 
 	def gpib_readline(self):
 		self.read()
