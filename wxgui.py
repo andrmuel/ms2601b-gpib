@@ -267,12 +267,15 @@ class MainFrame(wx.Frame):
 		self.update_res_bw_sweep_time_video_bw()
 
 	def update_res_bw_sweep_time_video_bw(self):
-		self.res_bw_auto.SetSelection((1-int(self.ms2601b.get_resolution_bandwidth_auto())))
-		self.res_bw_select.SetStringSelection(self.ms2601b.get_resolution_bandwidth())
-		self.sweep_time_auto.SetSelection((1-int(self.ms2601b.get_sweep_time_auto())))
-		self.sweep_time_select.SetStringSelection(self.ms2601b.get_sweep_time())
-		self.video_bw_auto.SetSelection((1-int(self.ms2601b.get_video_bandwidth_auto())))
-		self.video_bw_select.SetStringSelection(self.ms2601b.get_video_bandwidth())
+		if self.ms2601b.res_bw_auto:
+			self.res_bw_auto.SetSelection((1-int(self.ms2601b.get_resolution_bandwidth_auto())))
+			self.res_bw_select.SetStringSelection(self.ms2601b.get_resolution_bandwidth())
+		if self.ms2601b.sweep_time_auto:
+			self.sweep_time_auto.SetSelection((1-int(self.ms2601b.get_sweep_time_auto())))
+			self.sweep_time_select.SetStringSelection(self.ms2601b.get_sweep_time())
+		if self.ms2601b.video_bw_auto:
+			self.video_bw_auto.SetSelection((1-int(self.ms2601b.get_video_bandwidth_auto())))
+			self.video_bw_select.SetStringSelection(self.ms2601b.get_video_bandwidth())
 		self.uncal_label.Show(self.ms2601b.get_uncal_status())
 
 	def updat_atten(self):

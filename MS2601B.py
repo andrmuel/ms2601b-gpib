@@ -172,9 +172,8 @@ class MS2601B:
 		return self.scale
 		
 	def set_scale(self, scale):
-		if scale in self.SCALE.keys():
-			self.scale = scale
-			self.set_value("SCL", self.SCALE[scale])
+		self.scale = scale
+		self.set_value("SCL", self.SCALE[scale])
 
 	def start_calibration(self, mode=0):
 		"""
