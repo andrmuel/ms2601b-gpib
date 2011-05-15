@@ -72,7 +72,7 @@ class MainFrame(wx.Frame):
 		self.menubar.Append(wxglade_tmp_menu, "Antenna")
 		self.SetMenuBar(self.menubar)
 		# Menu Bar end
-		self.statusbar = self.CreateStatusBar(1, 0)
+		self.statusbar = self.CreateStatusBar(4, 0)
 		self.ref_level_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Reference level")
 		self.ref_level_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → reference level")
@@ -102,7 +102,6 @@ class MainFrame(wx.Frame):
 		self.video_bw_auto = wx.RadioBox(self.main_settings_panel, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
 		self.video_bw_select = wx.ComboBox(self.main_settings_panel, -1, choices=["-OFF-", "100 kHz", "10 kHz", "1 kHz", "100 Hz", "10 Hz", "1 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.uncal_label = wx.StaticText(self.main_settings_panel, -1, "Uncalibrated")
-		self.panel_1 = wx.Panel(self.notebook_main, -1)
 		self.console_output_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
 		self.console_input_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_PROCESS_ENTER)
 
@@ -163,42 +162,35 @@ class MainFrame(wx.Frame):
 		
 		# create MS2601B instance
 		self.ms2601b = MS2601B.MS2601B()
-		# update frequency values
+		# set up frequency ranges
 		self.center_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
 		self.start_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
 		self.stop_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
 		self.span_spin_ctrl.SetRange(self.ms2601b.SPAN_FREQ_MIN, self.ms2601b.SPAN_FREQ_MAX/1000)
 		self.update_frequencies()
-		# update reference level value
+		# set up reference level range
 		self.ref_level_spin_ctrl.SetRange(self.ms2601b.REF_LEVEL_MIN, self.ms2601b.REF_LEVEL_MAX)
-		self.update_reference_level()
-		# update main settings with actual values
-		self.update_res_bw_atten_sweep_time_video_bw()
-		# set scale menu correctly
+		# set scale menu IDs
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
-		self.update_scale_menu()
-		# set unit menu correctly
+		# set unit menu IDs
 		self.UNIT_TO_MENUITEM_ID = {"dBm": MENU_UNIT_DBM, "dBµV": MENU_UNIT_DBUV, "dBV": MENU_UNIT_DBV, "V": MENU_UNIT_V, "dBµV (emf)": MENU_UNIT_DBUV_EMF, "dBµV/m": MENU_UNIT_DBUV_M}
 		self.MENUITEM_ID_TO_UNIT = dict([(b,a) for (a,b) in self.UNIT_TO_MENUITEM_ID.iteritems()])
-		self.update_unit_menu()
-		# set antenna menu correctly
+		# set antenna menu IDs
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
 		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
-		self.update_antenna_menu()
-		# set up trigger menu correctly
+		# set up trigger menu IDs
 		self.TRIGGER_TYPE_TO_MENUITEM_ID = {"FREE": MENU_TRIGGER_FREE, "VIDEO": MENU_TRIGGER_VIDEO, "LINE": MENU_TRIGGER_LINE, "EXT": MENU_TRIGGER_EXT, "SINGLE": MENU_TRIGGER_SINGLE, "START": MENU_TRIGGER_START}
 		self.MENUITEM_ID_TO_TRIGGER_TYPE = dict([(b,a) for (a,b) in self.TRIGGER_TYPE_TO_MENUITEM_ID.iteritems()])
-		self.update_trigger_menu()
-		# set up calibration menu correctly
-		self.update_calibration_menu()
+		# update all values
+		self.update_all_values()
 
 	def __set_properties(self):
 		# begin wxGlade: MainFrame.__set_properties
 		self.SetTitle("MS2601B GPIB control")
-		self.statusbar.SetStatusWidths([-1])
+		self.statusbar.SetStatusWidths([-1, 70, 70, 80])
 		# statusbar fields
-		statusbar_fields = [""]
+		statusbar_fields = ["", "", "", ""]
 		for i in range(len(statusbar_fields)):
 		    self.statusbar.SetStatusText(statusbar_fields[i], i)
 		self.ref_level_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
@@ -329,7 +321,6 @@ class MainFrame(wx.Frame):
 		main_settings_sizer.AddGrowableRow(4)
 		main_settings_sizer.AddGrowableCol(0)
 		main_sizer.Add(self.main_settings_panel, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 6)
-		main_sizer.Add(self.panel_1, 1, wx.EXPAND, 0)
 		self.notebook_main.SetSizer(main_sizer)
 		main_sizer.AddGrowableRow(0)
 		main_sizer.AddGrowableRow(1)
@@ -396,18 +387,21 @@ class MainFrame(wx.Frame):
 
 	def menu_handler_scale(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_scale(self.MENUITEM_ID_TO_SCALE[event.GetId()])
+		self.update_statusbar()
 
 	def menu_handler_antenna(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
 
 	def menu_handler_trigger(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_trigger(self.MENUITEM_ID_TO_TRIGGER_TYPE[event.GetId()])
+		self.update_statusbar()
 
 	def menu_handler_trigger_sweep(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.sweep()
 
 	def menu_handler_unit(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_unit(self.MENUITEM_ID_TO_UNIT[event.GetId()])
+		self.update_statusbar()
 
 	def res_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth_auto(event.GetString()=="Auto")
@@ -501,6 +495,7 @@ class MainFrame(wx.Frame):
 		self.update_antenna_menu()
 		self.update_calibration_menu()
 		self.update_trigger_menu()
+		self.update_statusbar()
 
 	def update_frequencies(self):
 		self.center_freq_spin_ctrl.SetValue(self.ms2601b.get_center_frequency()/1000)
@@ -537,6 +532,11 @@ class MainFrame(wx.Frame):
 
 	def update_trigger_menu(self):
 		self.menubar.FindItemById(self.TRIGGER_TYPE_TO_MENUITEM_ID[self.ms2601b.get_trigger()]).Check(True)
+	
+	def update_statusbar(self):
+		self.statusbar.SetStatusText(self.ms2601b.get_scale(),1)
+		self.statusbar.SetStatusText(self.ms2601b.get_unit(),2)
+		self.statusbar.SetStatusText(self.ms2601b.get_trigger(),3)
 
 # end of class MainFrame
 
