@@ -10,6 +10,8 @@
 MS2601B remote control via GPIB.
 """
 
+import time
+
 import PrologixGPIB
 import code
 from IPython.Shell import IPShellEmbed
@@ -37,20 +39,14 @@ class MS2601B:
 
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
-		self.get_sa_configuration()
-	
-	def get_sa_configuration(self):
-		self.get_scale()
-		# self.get_res_bw_atten_sweep_time_video_bw()
-
-	def get_res_bw_atten_sweep_time_video_bw(self):
-		self.get_resolution_bandwidth()
-		self.get_resolution_bandwidth_auto()
-		# self.get_attenuation()
-		# self.get_attenuation_auto()
-		self.get_sweep_time()
-		self.get_sweep_time_auto()
-		self.get_uncal_status()
+		self.res_bw_dirty = True
+		self.res_bw_auto_dirty = True
+		self.atten_dirty = True
+		self.atten_auto_dirty = True
+		self.sweep_time_dirty = True
+		self.sweep_time_auto_dirty = True
+		self.video_bw_dirty = True
+		self.video_bw_auto_dirty = True
 
 	def send(self, command):
 		self.gpib.gpib_send(command)
@@ -70,6 +66,23 @@ class MS2601B:
 	
 	def set_initial(self):
 		self.send("INI")
+		time.sleep(0.5)
+		self.res_bw_auto = True
+		self.res_bw_auto_dirty = False
+		self.res_bw = "1 MHz"
+		self.res_bw_dirty = False
+		self.atten_auto = True
+		self.atten_auto_dirty = False
+		self.atten = "20 dB"
+		self.atten_dirty = False
+		self.sweep_time_auto = True
+		self.sweep_time_auto_dirty = False
+		self.sweep_time = "70 ms"
+		self.sweep_time_dirty = False
+		self.video_bw_auto = True
+		self.video_bw_auto_dirty = False
+		self.video_bw = "100 kHz"
+		self.video_bw_dirty = False
 
 	def get_center_frequency(self):
 		"""
@@ -100,68 +113,99 @@ class MS2601B:
 		self.set_value("SPF", span)
 
 	def get_resolution_bandwidth_auto(self):
-		self.res_bw_auto = bool(self.get_value("ARB"))
+		if self.res_bw_auto_dirty:
+			self.res_bw_auto = bool(self.get_value("ARB"))
+			self.res_bw_auto_dirty = False
 		return self.res_bw_auto
 
 	def set_resolution_bandwidth_auto(self, auto):
 		self.res_bw_auto = auto
 		self.set_value("ARB", int(auto))
+		if self.get_sweep_time_auto():
+			self.sweep_time_dirty = True
 
 	def get_resolution_bandwidth(self):
-		self.res_bw = self.RES_BW_INV[self.get_value("RBW")]
+		if self.res_bw_dirty:
+			self.res_bw = self.RES_BW_INV[self.get_value("RBW")]
+			self.res_bw_dirty = False
 		return self.res_bw
 
 	def set_resolution_bandwidth(self, rbw):
 		self.res_bw = rbw
+		self.res_bw_dirty = False
 		self.set_value("RBW", self.RES_BW[rbw])
+		if self.get_sweep_time_auto():
+			self.sweep_time_dirty = True
 
 	def get_attenuation_auto(self):
-		self.atten_auto = bool(self.get_value("AAT"))
+		if self.atten_auto_dirty:
+			self.atten_auto = bool(self.get_value("AAT"))
+			self.atten_auto_dirty = False
 		return self.atten_auto
 
 	def set_attenuation_auto(self, auto):
 		self.atten_auto = auto
+		self.atten_auto_dirty = False
 		self.set_value("AAT", int(auto))
 
 	def get_attenuation(self):
-		self.atten = self.ATTEN_INV[self.get_value("ATT")]
+		if self.atten_dirty:
+			self.atten = self.ATTEN_INV[self.get_value("ATT")]
+			self.atten_dirty = False
 		return self.atten
 
-	def set_attenuation(self, rbw):
-		self.atten = rbw
-		self.set_value("ATT", self.ATTEN[rbw])
+	def set_attenuation(self, atten):
+		self.atten = atten
+		self.atten_dirty = False
+		self.set_value("ATT", self.ATTEN[atten])
 
 	def get_sweep_time_auto(self):
-		self.sweep_time_auto = bool(self.get_value("AST"))
+		if self.sweep_time_auto_dirty:
+			self.sweep_time_auto = bool(self.get_value("AST"))
+			self.sweep_time_auto_dirty = False
 		return self.sweep_time_auto
 
 	def set_sweep_time_auto(self, auto):
 		self.sweep_time_auto = auto
+		self.sweep_time_auto_dirty = False
 		self.set_value("AST", int(auto))
 
 	def get_sweep_time(self):
-		self.sweep_time = self.SWEEP_TIME_INV[self.get_value("SWT")]
+		if self.sweep_time_dirty:
+			self.sweep_time = self.SWEEP_TIME_INV[self.get_value("SWT")]
+			self.sweep_time_dirty = False
 		return self.sweep_time
 
 	def set_sweep_time(self, rbw):
 		self.sweep_time = rbw
+		self.sweep_time_dirty = False
 		self.set_value("SWT", self.SWEEP_TIME[rbw])
 
 	def get_video_bandwidth_auto(self):
-		self.video_bw_auto = bool(self.get_value("AVB"))
+		if self.video_bw_auto_dirty:
+			self.video_bw_auto = bool(self.get_value("AVB"))
+			self.video_bw_auto_dirty = False
 		return self.video_bw_auto
 
 	def set_video_bandwidth_auto(self, auto):
 		self.video_bw_auto = auto
+		self.video_bw_auto_dirty = False
 		self.set_value("AVB", int(auto))
+		if self.get_sweep_time_auto():
+			self.sweep_time_dirty = True
 
 	def get_video_bandwidth(self):
-		self.video_bw = self.VIDEO_BW_INV[self.get_value("VBW")]
+		if self.video_bw_dirty:
+			self.video_bw = self.VIDEO_BW_INV[self.get_value("VBW")]
+			self.video_bw_dirty = False
 		return self.video_bw
 
 	def set_video_bandwidth(self, rbw):
 		self.video_bw = rbw
+		self.video_bw_dirty = False
 		self.set_value("VBW", self.VIDEO_BW[rbw])
+		if self.get_sweep_time_auto():
+			self.sweep_time_dirty = True
 
 	def get_uncal_status(self):
 		self.uncal = bool(self.get_value("UCL"))

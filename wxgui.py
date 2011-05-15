@@ -86,9 +86,9 @@ class MainFrame(wx.Frame):
 		# set scale menu correctly
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
-		self.menubar.FindItemById(self.SCALE_TO_MENUITEM_ID[self.ms2601b.scale]).Check(True)
+		self.menubar.FindItemById(self.SCALE_TO_MENUITEM_ID[self.ms2601b.get_scale()]).Check(True)
 		# update main settings with actual values
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 		# update sweep time with actual values
 		self.updat_atten()
 
@@ -226,6 +226,7 @@ class MainFrame(wx.Frame):
 	def menu_handler_initial(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Reset to initial values ...")
 		self.ms2601b.set_initial()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def menu_handler_local(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Returning control to local ...")
@@ -236,11 +237,11 @@ class MainFrame(wx.Frame):
 
 	def res_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth_auto(event.GetString()=="Auto")
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def res_bw_select_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth(event.GetString())
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def atten_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_attenuation_auto(event.GetString()=="Auto")
@@ -252,30 +253,29 @@ class MainFrame(wx.Frame):
 
 	def sweep_time_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_sweep_time_auto(event.GetString()=="Auto")
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def sweep_time_select_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_sweep_time(event.GetString())
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def video_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_video_bandwidth_auto(event.GetString()=="Auto")
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def video_bw_select_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_video_bandwidth(event.GetString())
-		self.update_res_bw_sweep_time_video_bw()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
-	def update_res_bw_sweep_time_video_bw(self):
-		if self.ms2601b.res_bw_auto:
-			self.res_bw_auto.SetSelection((1-int(self.ms2601b.get_resolution_bandwidth_auto())))
-			self.res_bw_select.SetStringSelection(self.ms2601b.get_resolution_bandwidth())
-		if self.ms2601b.sweep_time_auto:
-			self.sweep_time_auto.SetSelection((1-int(self.ms2601b.get_sweep_time_auto())))
-			self.sweep_time_select.SetStringSelection(self.ms2601b.get_sweep_time())
-		if self.ms2601b.video_bw_auto:
-			self.video_bw_auto.SetSelection((1-int(self.ms2601b.get_video_bandwidth_auto())))
-			self.video_bw_select.SetStringSelection(self.ms2601b.get_video_bandwidth())
+	def update_res_bw_atten_sweep_time_video_bw(self):
+		self.res_bw_auto.SetSelection((1-int(self.ms2601b.get_resolution_bandwidth_auto())))
+		self.res_bw_select.SetStringSelection(self.ms2601b.get_resolution_bandwidth())
+		self.atten_auto.SetSelection((1-int(self.ms2601b.get_attenuation_auto())))
+		self.atten_select.SetStringSelection(self.ms2601b.get_attenuation())
+		self.sweep_time_auto.SetSelection((1-int(self.ms2601b.get_sweep_time_auto())))
+		self.sweep_time_select.SetStringSelection(self.ms2601b.get_sweep_time())
+		self.video_bw_auto.SetSelection((1-int(self.ms2601b.get_video_bandwidth_auto())))
+		self.video_bw_select.SetStringSelection(self.ms2601b.get_video_bandwidth())
 		self.uncal_label.Show(self.ms2601b.get_uncal_status())
 
 	def updat_atten(self):
