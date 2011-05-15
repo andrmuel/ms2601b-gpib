@@ -69,6 +69,8 @@ class MS2601B:
 		self.scale_dirty = True
 		self.unit_dirty = True
 		self.antenna_dirty = True
+		self.correction_data_dirty = True
+		self.response_data_dirty = True
 
 	def send(self, command):
 		self.gpib.gpib_send(command)
@@ -111,6 +113,10 @@ class MS2601B:
 		self.unit_dirty = False
 		self.antenna = "OFF"
 		self.antenna_dirty = False
+		self.correction_data = True
+		self.correction_data_dirty = False
+		self.response_data = True
+		self.response_data_dirty = False
 
 	def get_center_frequency(self):
 		"""
@@ -280,6 +286,28 @@ class MS2601B:
 		"""
 		if mode in range(4):
 			self.set_value("CAL", mode)
+
+	def get_correction_data(self):
+		if self.correction_data_dirty:
+			self.correction_data = bool(self.get_value("CDT"))
+			self.correction_data_dirty = False
+		return self.correction_data
+
+	def set_correction_data(self, enabled):
+		self.correction_data = enabled
+		self.correction_data_dirty = False
+		self.set_value("CDT", int(enabled))
+
+	def get_response_data(self):
+		if self.response_data_dirty:
+			self.response_data = bool(self.get_value("CRE"))
+			self.response_data_dirty = False
+		return self.response_data
+
+	def set_response_data(self, enabled):
+		self.response_data = enabled
+		self.response_data_dirty = False
+		self.set_value("CRE", int(enabled))
 
 if __name__ == "__main__":
 	ms2601b = MS2601B()

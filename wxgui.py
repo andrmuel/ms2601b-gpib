@@ -22,8 +22,8 @@ class MainFrame(wx.Frame):
 		# Menu Bar
 		self.menubar = wx.MenuBar()
 		wxglade_tmp_menu = wx.Menu()
-		wxglade_tmp_menu.Append(MENU_INITIAL, "Initial", "", wx.ITEM_NORMAL)
-		wxglade_tmp_menu.Append(MENU_LOCAL, "Local", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_INITIAL, "Initial settings", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_LOCAL, "Local control", "", wx.ITEM_NORMAL)
 		self.menubar.Append(wxglade_tmp_menu, "Device")
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_SCALE_1DB, "Log 1dB", "", wx.ITEM_RADIO)
@@ -45,6 +45,9 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_1, "Level (1)", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_2, "Level (2)", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_FREQUENCY, "Frequency", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.AppendSeparator()
+		wxglade_tmp_menu.Append(MENU_CALIBRATION_CORRECTION_DATA, "Correction data", "", wx.ITEM_CHECK)
+		wxglade_tmp_menu.Append(MENU_CALIBRATION_RESPONSE_DATA, "Response data", "", wx.ITEM_CHECK)
 		self.menubar.Append(wxglade_tmp_menu, "Calibration")
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_ANTENNA_OFF, "Off", "", wx.ITEM_RADIO)
@@ -93,6 +96,8 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_1, id=MENU_CALIBRATION_LEVEL_1)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_2, id=MENU_CALIBRATION_LEVEL_2)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_frequency, id=MENU_CALIBRATION_FREQUENCY)
+		self.Bind(wx.EVT_MENU, self.menu_handler_calibration_correction_data, id=MENU_CALIBRATION_CORRECTION_DATA)
+		self.Bind(wx.EVT_MENU, self.menu_handler_calibration_response_data, id=MENU_CALIBRATION_RESPONSE_DATA)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_OFF)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_DIPOLE)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOGPER_1)
@@ -123,6 +128,8 @@ class MainFrame(wx.Frame):
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
 		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
 		self.update_antenna_menu()
+		# set up calibration menu correctly
+		self.update_calibration_menu()
 		# update main settings with actual values
 		self.update_res_bw_atten_sweep_time_video_bw()
 
@@ -245,6 +252,12 @@ class MainFrame(wx.Frame):
 	def menu_handler_calibrate_level_2(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Starting calibration: LEVEL (2)")
 		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["LEVEL (2)"])
+		
+	def menu_handler_calibration_correction_data(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_correction_data(event.IsChecked())
+
+	def menu_handler_calibration_response_data(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_response_data(event.IsChecked())
 
 	def console_input_enter_event(self, event): # wxGlade: MainFrame.<event_handler>
 		command = self.console_input_text_ctrl.GetValue()
@@ -264,6 +277,7 @@ class MainFrame(wx.Frame):
 		self.update_scale_menu()
 		self.update_unit_menu()
 		self.update_antenna_menu()
+		self.update_calibration_menu()
 
 	def menu_handler_local(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Returning control to local ...")
@@ -329,7 +343,11 @@ class MainFrame(wx.Frame):
 
 	def update_antenna_menu(self):
 		self.menubar.FindItemById(self.ANTENNA_TO_MENUITEM_ID[self.ms2601b.get_antenna()]).Check(True)
-		
+
+	def update_calibration_menu(self):
+		self.menubar.FindItemById(MENU_CALIBRATION_CORRECTION_DATA).Check(self.ms2601b.get_correction_data())
+		self.menubar.FindItemById(MENU_CALIBRATION_RESPONSE_DATA).Check(self.ms2601b.get_response_data())
+
 # end of class MainFrame
 
 
