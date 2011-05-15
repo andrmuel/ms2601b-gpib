@@ -28,6 +28,12 @@ class MS2601B:
 	REF_LEVEL_MIN = -100 # TODO only works with dBm
 	REF_LEVEL_MAX = 20
 
+	# frequency
+	SPAN_FREQ_MIN = 0
+	SPAN_FREQ_MAX = 2200000000
+	MIN_FREQ = 0
+	MAX_FREQ = 2200000000
+
 	# calibration modes
 	CAL_MODES = {"ALL": 0, "FREQ": 1, "LEVEL (1)": 2, "LEVEL (2)": 3}
 	CAL_MODES_INV =  dict([(b,a) for (a,b) in CAL_MODES.iteritems()])
@@ -66,6 +72,12 @@ class MS2601B:
 
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
+		self.set_all_values_dirty()
+
+	def set_all_values_dirty(self):
+		self.center_freq_dirty = True
+		self.start_freq_dirty = True
+		self.span_dirty = True
 		self.ref_level_dirty = True
 		self.res_bw_dirty = True
 		self.res_bw_auto_dirty = True
@@ -108,6 +120,12 @@ class MS2601B:
 	def set_initial(self):
 		self.send("INI")
 		time.sleep(0.5)
+		self.center_freq = self.MAX_FREQ/2
+		self.center_freq_dirty = False
+		self.start_freq = self.MIN_FREQ
+		self.start_freq_dirty = False
+		self.span = self.SPAN_FREQ_MAX
+		self.span_dirty = False
 		self.ref_level = 0
 		self.ref_level_dirty = False
 		self.res_bw_auto = True
@@ -152,23 +170,62 @@ class MS2601B:
 		self.ref_level_dirty = True
 
 	def get_center_frequency(self):
-		return self.get_int_value("CNF")
+		if self.center_freq_dirty:
+			self.center_freq = self.get_int_value("CNF")
+			self.center_freq_dirty = False
+		return self.center_freq
 	
 	def set_center_frequency(self, center_freq):
+		assert center_freq >= self.MIN_FREQ and center_freq <= self.MAX_FREQ
+		self.center_freq = center_freq
+		self.center_freq_dirty = False
+		self.start_freq_dirty = True
+		self.span_dirty = True
 		self.set_int_value("CNF", center_freq)
 
+	def peak_to_center_frequency(self):
+		self.send("PCF")
+		self.center_freq_dirty = True
+		self.start_freq_dirty = True
+		self.span_dirty = True
+
 	def get_start_frequency(self):
-		return self.get_int_value("STF")
+		if self.start_freq_dirty:
+			self.start_freq = self.get_int_value("STF")
+			self.start_freq_dirty = False
+		return self.start_freq
 
 	def set_start_frequency(self, start_freq):
+		assert start_freq >= self.MIN_FREQ and start_freq <= self.MAX_FREQ
+		self.start_freq = start_freq
+		self.start_freq_dirty = False
+		self.center_freq_dirty = True
+		self.span_dirty = True
 		self.set_int_value("STF", start_freq)
 
+	def get_stop_frequency(self):
+		return self.get_start_frequency()+self.get_span()
+
+	def set_stop_frequency(self, stop_freq):
+		assert stop_freq >= self.MIN_FREQ and stop_freq <= self.MAX_FREQ
+		start_freq = self.get_start_frequency()
+		assert stop_freq >= start_freq
+		span = stop_freq-start_freq
+		self.set_span(span)
+		self.set_start_frequency(start_freq)
+
 	def get_span(self):
-		self.span = self.get_int_value("SPF")
+		if self.span_dirty:
+			self.span = self.get_int_value("SPF")
+			self.span_dirty = False
 		return self.span
 
 	def set_span(self, span):
+		assert span >= self.SPAN_FREQ_MIN and span <= self.SPAN_FREQ_MAX
 		self.span = span
+		self.span_dirty = False
+		self.center_freq_dirty = True
+		self.start_freq_dirty = True
 		self.set_int_value("SPF", span)
 
 	def get_resolution_bandwidth_auto(self):

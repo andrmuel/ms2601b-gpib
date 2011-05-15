@@ -25,6 +25,7 @@ class MainFrame(wx.Frame):
 		self.menubar = wx.MenuBar()
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_INITIAL, "Initial settings", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_UPDATE_ALL, "Update all values", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_LOCAL, "Local control", "", wx.ITEM_NORMAL)
 		self.menubar.Append(wxglade_tmp_menu, "Device")
 		wxglade_tmp_menu = wx.Menu()
@@ -76,16 +77,16 @@ class MainFrame(wx.Frame):
 		self.ref_level_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → reference level")
 		self.frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Frequency")
-		self.center_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Center frequency")
+		self.center_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Center frequency (kHz)")
 		self.placeholder_panel_1 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.center_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.peak_to_cf_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → center frequency")
-		self.span_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Span")
+		self.span_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Span (kHz)")
 		self.placeholder_panel_2 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.span_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.zero_span_button = wx.Button(self.frequency_ref_level_panel, -1, "Zero span")
-		self.start_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Start frequency")
-		self.stop_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Stop frequency")
+		self.start_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Start frequency (kHz)")
+		self.stop_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Stop frequency (kHz)")
 		self.start_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.stop_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.res_bw_label = wx.StaticText(self.main_settings_panel, -1, "Resolution bandwidth")
@@ -109,6 +110,7 @@ class MainFrame(wx.Frame):
 		self.__do_layout()
 
 		self.Bind(wx.EVT_MENU, self.menu_handler_initial, id=MENU_INITIAL)
+		self.Bind(wx.EVT_MENU, self.menu_handler_update_all, id=MENU_UPDATE_ALL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_local, id=MENU_LOCAL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_1DB)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_2DB)
@@ -161,6 +163,12 @@ class MainFrame(wx.Frame):
 		
 		# create MS2601B instance
 		self.ms2601b = MS2601B.MS2601B()
+		# update frequency values
+		self.center_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
+		self.start_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
+		self.stop_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
+		self.span_spin_ctrl.SetRange(self.ms2601b.SPAN_FREQ_MIN, self.ms2601b.SPAN_FREQ_MAX/1000)
+		self.update_frequencies()
 		# update reference level value
 		self.ref_level_spin_ctrl.SetRange(self.ms2601b.REF_LEVEL_MIN, self.ms2601b.REF_LEVEL_MAX)
 		self.update_reference_level()
@@ -376,12 +384,11 @@ class MainFrame(wx.Frame):
 	def menu_handler_initial(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Reset to initial values ...")
 		self.ms2601b.set_initial()
-		self.update_res_bw_atten_sweep_time_video_bw()
-		self.update_scale_menu()
-		self.update_unit_menu()
-		self.update_antenna_menu()
-		self.update_calibration_menu()
-		self.update_trigger_menu()
+		self.update_all_values()
+
+	def menu_handler_update_all(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_all_values_dirty()
+		self.update_all_values()
 
 	def menu_handler_local(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Returning control to local ...")
@@ -446,31 +453,62 @@ class MainFrame(wx.Frame):
 		self.update_reference_level()
 
 	def spinctrl_handler_center_freq(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `spinctrl_handler_center_freq' not implemented"
-		event.Skip()
+		value = self.center_freq_spin_ctrl.GetValue()
+		try:
+			self.ms2601b.set_center_frequency(float(value)*1000)
+		except:
+			pass
+		self.update_frequencies()
 
 	def button_handler_peak_to_center_freq(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `button_handler_peak_to_center_freq' not implemented"
-		event.Skip()
-
-	def spinctrl_handler_span(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `spinctrl_handler_span' not implemented"
-		event.Skip()
-
-	def button_handler_zero_span(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `button_handler_zero_span' not implemented"
-		event.Skip()
+		self.ms2601b.peak_to_center_frequency()
+		self.update_frequencies()
 
 	def spinctrl_handler_start_freq(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `spinctrl_handler_start_freq' not implemented"
-		event.Skip()
+		value = self.start_freq_spin_ctrl.GetValue()
+		try:
+			self.ms2601b.set_start_frequency(float(value)*1000)
+		except:
+			pass
+		self.update_frequencies()
 
 	def spinctrl_handler_stop_freq(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `spinctrl_handler_stop_freq' not implemented"
-		event.Skip()
+		value = self.stop_freq_spin_ctrl.GetValue()
+		try:
+			self.ms2601b.set_stop_frequency(float(value)*1000)
+		except:
+			pass
+		self.update_frequencies()
+
+	def spinctrl_handler_span(self, event): # wxGlade: MainFrame.<event_handler>
+		value = self.span_spin_ctrl.GetValue()
+		try:
+			self.ms2601b.set_span(float(value)*1000)
+		except:
+			pass
+		self.update_frequencies()
+
+	def button_handler_zero_span(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_span(0)
+		self.update_frequencies()
+
+	def update_all_values(self):
+		self.update_frequencies()
+		self.update_reference_level()
+		self.update_res_bw_atten_sweep_time_video_bw()
+		self.update_scale_menu()
+		self.update_unit_menu()
+		self.update_antenna_menu()
+		self.update_calibration_menu()
+		self.update_trigger_menu()
+
+	def update_frequencies(self):
+		self.center_freq_spin_ctrl.SetValue(self.ms2601b.get_center_frequency()/1000)
+		self.start_freq_spin_ctrl.SetValue(self.ms2601b.get_start_frequency()/1000)
+		self.stop_freq_spin_ctrl.SetValue(self.ms2601b.get_stop_frequency()/1000)
+		self.span_spin_ctrl.SetValue(self.ms2601b.get_span()/1000)
 
 	def update_reference_level(self):
-		print self.ms2601b.get_reference_level()
 		self.ref_level_spin_ctrl.SetValue(self.ms2601b.get_reference_level())
 
 	def update_res_bw_atten_sweep_time_video_bw(self):
