@@ -77,9 +77,11 @@ class MainFrame(wx.Frame):
 		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → reference level")
 		self.frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Frequency")
 		self.center_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Center frequency")
+		self.placeholder_panel_1 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.center_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.peak_to_cf_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → center frequency")
 		self.span_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Span")
+		self.placeholder_panel_2 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.span_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.zero_span_button = wx.Button(self.frequency_ref_level_panel, -1, "Zero span")
 		self.start_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Start frequency")
@@ -157,7 +159,13 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_TEXT_ENTER, self.console_input_enter_event, self.console_input_text_ctrl)
 		# end wxGlade
 		
+		# create MS2601B instance
 		self.ms2601b = MS2601B.MS2601B()
+		# update reference level value
+		self.ref_level_spin_ctrl.SetRange(self.ms2601b.REF_LEVEL_MIN, self.ms2601b.REF_LEVEL_MAX)
+		self.update_reference_level()
+		# update main settings with actual values
+		self.update_res_bw_atten_sweep_time_video_bw()
 		# set scale menu correctly
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
@@ -176,8 +184,6 @@ class MainFrame(wx.Frame):
 		self.update_trigger_menu()
 		# set up calibration menu correctly
 		self.update_calibration_menu()
-		# update main settings with actual values
-		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def __set_properties(self):
 		# begin wxGlade: MainFrame.__set_properties
@@ -188,8 +194,12 @@ class MainFrame(wx.Frame):
 		for i in range(len(statusbar_fields)):
 		    self.statusbar.SetStatusText(statusbar_fields[i], i)
 		self.ref_level_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
-		self.ref_level_spin_ctrl.SetMinSize((200, 27))
+		self.ref_level_spin_ctrl.SetMinSize((100, 27))
 		self.frequency_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+		self.center_freq_spin_ctrl.SetMinSize((100, 27))
+		self.span_spin_ctrl.SetMinSize((100, 27))
+		self.start_freq_spin_ctrl.SetMinSize((100, 27))
+		self.stop_freq_spin_ctrl.SetMinSize((100, 27))
 		self.res_bw_label.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.res_bw_auto.SetSelection(0)
 		self.res_bw_select.SetSelection(-1)
@@ -230,15 +240,18 @@ class MainFrame(wx.Frame):
 		ref_level_input_sizer.Add(self.peak_to_ref_level_button, 0, 0, 0)
 		ref_level_input_sizer.AddGrowableRow(0)
 		ref_level_input_sizer.AddGrowableCol(0)
+		ref_level_input_sizer.AddGrowableCol(1)
 		ref_level_sizer.Add(ref_level_input_sizer, 1, wx.EXPAND, 0)
 		ref_level_sizer.AddGrowableRow(1)
 		ref_level_sizer.AddGrowableCol(0)
 		frequency_ref_level_sizer.Add(ref_level_sizer, 1, wx.ALL|wx.EXPAND, 2)
 		frequency_sizer.Add(self.frequency_label, 0, 0, 0)
 		frequency_input_sizer.Add(self.center_frequency_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.placeholder_panel_1, 1, wx.EXPAND, 0)
 		frequency_input_sizer.Add(self.center_freq_spin_ctrl, 0, 0, 0)
 		frequency_input_sizer.Add(self.peak_to_cf_button, 0, 0, 0)
 		frequency_input_sizer.Add(self.span_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.placeholder_panel_2, 1, wx.EXPAND, 0)
 		frequency_input_sizer.Add(self.span_spin_ctrl, 0, 0, 0)
 		frequency_input_sizer.Add(self.zero_span_button, 0, 0, 0)
 		frequency_input_sizer.Add(self.start_frequency_label, 0, 0, 0)
@@ -258,7 +271,7 @@ class MainFrame(wx.Frame):
 		frequency_ref_level_sizer.AddGrowableRow(0)
 		frequency_ref_level_sizer.AddGrowableRow(1)
 		frequency_ref_level_sizer.AddGrowableCol(0)
-		main_sizer.Add(self.frequency_ref_level_panel, 1, wx.ALL|wx.EXPAND, 6)
+		main_sizer.Add(self.frequency_ref_level_panel, 1, wx.ALL, 6)
 		res_bw_sizer.Add(self.res_bw_label, 0, 0, 0)
 		res_bw_subsizer.Add(self.res_bw_auto, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 		res_bw_subsizer.Add(self.res_bw_select, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -422,12 +435,15 @@ class MainFrame(wx.Frame):
 		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def spinctrl_handler_ref_level(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `spinctrl_handler_ref_level' not implemented"
-		event.Skip()
+		value = self.ref_level_spin_ctrl.GetValue()
+		try:
+			self.ms2601b.set_reference_level(float(value))
+		except:
+			pass
 
 	def button_handler_peak_to_ref_level(self, event): # wxGlade: MainFrame.<event_handler>
-		print "Event handler `button_handler_peak_to_ref_level' not implemented"
-		event.Skip()
+		self.ms2601b.peak_to_reference_level()
+		self.update_reference_level()
 
 	def spinctrl_handler_center_freq(self, event): # wxGlade: MainFrame.<event_handler>
 		print "Event handler `spinctrl_handler_center_freq' not implemented"
@@ -452,6 +468,10 @@ class MainFrame(wx.Frame):
 	def spinctrl_handler_stop_freq(self, event): # wxGlade: MainFrame.<event_handler>
 		print "Event handler `spinctrl_handler_stop_freq' not implemented"
 		event.Skip()
+
+	def update_reference_level(self):
+		print self.ms2601b.get_reference_level()
+		self.ref_level_spin_ctrl.SetValue(self.ms2601b.get_reference_level())
 
 	def update_res_bw_atten_sweep_time_video_bw(self):
 		self.res_bw_auto.SetSelection((1-int(self.ms2601b.get_resolution_bandwidth_auto())))

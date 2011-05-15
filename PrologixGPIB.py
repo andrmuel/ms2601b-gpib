@@ -108,6 +108,7 @@ class PrologixGPIB:
 			else:
 				time.sleep(0.1)
 
-	def command(self, command):
+	def command(self, command, read_answer=False):
 		self.gpib_send(command)
-		return self.gpib_readline()
+		if read_answer:
+			return self.gpib_readline()
