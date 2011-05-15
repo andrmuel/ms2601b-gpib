@@ -33,6 +33,14 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_SCALE_LIN, "Lin", "", wx.ITEM_RADIO)
 		self.menubar.Append(wxglade_tmp_menu, "Scale")
 		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_UNIT_DBM, "dBm", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBUV, u"dBµV", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBV, "dBV", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_V, "V", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_EMF, u"dBµV (emf)", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_M, u"dBµV/m", "", wx.ITEM_RADIO)
+		self.menubar.Append(wxglade_tmp_menu, "Unit")
+		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_ALL, "All", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_1, "Level (1)", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_2, "Level (2)", "", wx.ITEM_NORMAL)
@@ -75,6 +83,12 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_5DB)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_10DB)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_LIN)
+		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBM)
+		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBUV)
+		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBV)
+		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_V)
+		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBUV_EMF)
+		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBUV_M)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_all, id=MENU_CALIBRATION_ALL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_1, id=MENU_CALIBRATION_LEVEL_1)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_2, id=MENU_CALIBRATION_LEVEL_2)
@@ -101,6 +115,10 @@ class MainFrame(wx.Frame):
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
 		self.update_scale_menu()
+		# set unit menu correctly
+		self.UNIT_TO_MENUITEM_ID = {"dBm": MENU_UNIT_DBM, "dBµV": MENU_UNIT_DBUV, "dBV": MENU_UNIT_DBV, "V": MENU_UNIT_V, "dBµV (emf)": MENU_UNIT_DBUV_EMF, "dBµV/m": MENU_UNIT_DBUV_M}
+		self.MENUITEM_ID_TO_UNIT = dict([(b,a) for (a,b) in self.UNIT_TO_MENUITEM_ID.iteritems()])
+		self.update_unit_menu()
 		# set antenna menu correctly
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
 		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
@@ -244,6 +262,7 @@ class MainFrame(wx.Frame):
 		self.ms2601b.set_initial()
 		self.update_res_bw_atten_sweep_time_video_bw()
 		self.update_scale_menu()
+		self.update_unit_menu()
 		self.update_antenna_menu()
 
 	def menu_handler_local(self, event): # wxGlade: MainFrame.<event_handler>
@@ -253,8 +272,11 @@ class MainFrame(wx.Frame):
 	def menu_handler_scale(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_scale(self.MENUITEM_ID_TO_SCALE[event.GetId()])
 
-	def menu_handler_antenna(self, event):
+	def menu_handler_antenna(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
+
+	def menu_handler_unit(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_unit(self.MENUITEM_ID_TO_UNIT[event.GetId()])
 
 	def res_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth_auto(event.GetString()=="Auto")
@@ -302,10 +324,12 @@ class MainFrame(wx.Frame):
 	def update_scale_menu(self):
 		self.menubar.FindItemById(self.SCALE_TO_MENUITEM_ID[self.ms2601b.get_scale()]).Check(True)
 
+	def update_unit_menu(self):
+		self.menubar.FindItemById(self.UNIT_TO_MENUITEM_ID[self.ms2601b.get_unit()]).Check(True)
+
 	def update_antenna_menu(self):
 		self.menubar.FindItemById(self.ANTENNA_TO_MENUITEM_ID[self.ms2601b.get_antenna()]).Check(True)
 		
-
 # end of class MainFrame
 
 

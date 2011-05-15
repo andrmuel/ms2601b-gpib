@@ -33,6 +33,8 @@ class MS2601B:
 	SCALE_INV = dict([(b,a) for (a,b) in SCALE.iteritems()])
 
 	# units
+	UNITS = {"dBm": 0, "dBµV": 1, "dBV": 2, "V": 3, "dBµV (emf)": 4, "dBµV/m": 5}
+	UNITS_INV = dict([(b,a) for (a,b) in UNITS.iteritems()])
 
 	# resolution bandwidth
 	RES_BW = {"30 Hz": 0, "100 Hz": 1, "300 Hz": 2, "1 kHz": 3, "3 kHz": 4, "10 kHz": 5, "30 kHz": 6, "100 kHz": 7, "300 kHz": 8, "1 MHz": 9, "200 Hz": 10, "9 kHz": 11, "120 kHz": 12}
@@ -65,6 +67,7 @@ class MS2601B:
 		self.video_bw_dirty = True
 		self.video_bw_auto_dirty = True
 		self.scale_dirty = True
+		self.unit_dirty = True
 		self.antenna_dirty = True
 
 	def send(self, command):
@@ -104,6 +107,8 @@ class MS2601B:
 		self.video_bw_dirty = False
 		self.scale = "10 dB"
 		self.scale_dirty = False
+		self.unit = "dBm"
+		self.unit_dirty = False
 		self.antenna = "OFF"
 		self.antenna_dirty = False
 
@@ -244,6 +249,17 @@ class MS2601B:
 		self.scale = scale
 		self.scale_dirty = False
 		self.set_value("SCL", self.SCALE[scale])
+
+	def get_unit(self):
+		if self.unit_dirty:
+			self.unit = self.UNITS_INV[self.get_value("UNT")]
+			self.unit_dirty = False
+		return self.unit
+
+	def set_unit(self, unit):
+		self.unit = unit
+		self.unit_dirty = False
+		self.set_value("UNT", self.UNITS[unit])
 	
 	def get_antenna(self):
 		if self.antenna_dirty:
