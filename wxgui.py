@@ -41,6 +41,16 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_M, u"dBµV/m", "", wx.ITEM_RADIO)
 		self.menubar.Append(wxglade_tmp_menu, "Unit")
 		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_TRIGGER_FREE, "Free", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_TRIGGER_VIDEO, "Video", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_TRIGGER_LINE, "Line", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_TRIGGER_EXT, "External", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_TRIGGER_SINGLE, "Single", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_TRIGGER_START, "Restart", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.AppendSeparator()
+		wxglade_tmp_menu.Append(MENU_TRIGGER_SWEEP, "Sweep", "", wx.ITEM_NORMAL)
+		self.menubar.Append(wxglade_tmp_menu, "Trigger")
+		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_ALL, "All", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_1, "Level (1)", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_2, "Level (2)", "", wx.ITEM_NORMAL)
@@ -92,6 +102,13 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_V)
 		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBUV_EMF)
 		self.Bind(wx.EVT_MENU, self.menu_handler_unit, id=MENU_UNIT_DBUV_M)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger, id=MENU_TRIGGER_FREE)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger, id=MENU_TRIGGER_VIDEO)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger, id=MENU_TRIGGER_LINE)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger, id=MENU_TRIGGER_EXT)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger, id=MENU_TRIGGER_SINGLE)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger, id=MENU_TRIGGER_START)
+		self.Bind(wx.EVT_MENU, self.menu_handler_trigger_sweep, id=MENU_TRIGGER_SWEEP)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_all, id=MENU_CALIBRATION_ALL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_1, id=MENU_CALIBRATION_LEVEL_1)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_2, id=MENU_CALIBRATION_LEVEL_2)
@@ -128,6 +145,10 @@ class MainFrame(wx.Frame):
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
 		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
 		self.update_antenna_menu()
+		# set up trigger menu correctly
+		self.TRIGGER_TYPE_TO_MENUITEM_ID = {"FREE": MENU_TRIGGER_FREE, "VIDEO": MENU_TRIGGER_VIDEO, "LINE": MENU_TRIGGER_LINE, "EXT": MENU_TRIGGER_EXT, "SINGLE": MENU_TRIGGER_SINGLE, "START": MENU_TRIGGER_START}
+		self.MENUITEM_ID_TO_TRIGGER_TYPE = dict([(b,a) for (a,b) in self.TRIGGER_TYPE_TO_MENUITEM_ID.iteritems()])
+		self.update_trigger_menu()
 		# set up calibration menu correctly
 		self.update_calibration_menu()
 		# update main settings with actual values
@@ -278,6 +299,7 @@ class MainFrame(wx.Frame):
 		self.update_unit_menu()
 		self.update_antenna_menu()
 		self.update_calibration_menu()
+		self.update_trigger_menu()
 
 	def menu_handler_local(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Returning control to local ...")
@@ -288,6 +310,12 @@ class MainFrame(wx.Frame):
 
 	def menu_handler_antenna(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
+
+	def menu_handler_trigger(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_trigger(self.MENUITEM_ID_TO_TRIGGER_TYPE[event.GetId()])
+
+	def menu_handler_trigger_sweep(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.sweep()
 
 	def menu_handler_unit(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_unit(self.MENUITEM_ID_TO_UNIT[event.GetId()])
@@ -347,6 +375,9 @@ class MainFrame(wx.Frame):
 	def update_calibration_menu(self):
 		self.menubar.FindItemById(MENU_CALIBRATION_CORRECTION_DATA).Check(self.ms2601b.get_correction_data())
 		self.menubar.FindItemById(MENU_CALIBRATION_RESPONSE_DATA).Check(self.ms2601b.get_response_data())
+
+	def update_trigger_menu(self):
+		self.menubar.FindItemById(self.TRIGGER_TYPE_TO_MENUITEM_ID[self.ms2601b.get_trigger()]).Check(True)
 
 # end of class MainFrame
 

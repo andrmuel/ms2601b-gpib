@@ -100,6 +100,7 @@ class PrologixGPIB:
 	def gpib_readline(self):
 		self.read()
 		self.send_prologix_command("read 10")
+		time.sleep(0.1)
 		while True:
 			line = self.read().strip()
 			if len(line) > 0:

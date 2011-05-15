@@ -56,6 +56,10 @@ class MS2601B:
 	ANTENNAS = {"DIPOLE": 0, "LOG-PERIODIC (1)": 1, "LOG-PERIODIC (2)": 2, "LOOP": 3, "USER": 4, "OFF": 5}
 	ANTENNAS_INV = dict([(b,a) for (a,b) in ANTENNAS.iteritems()])
 
+	# trigger types
+	TRIGGER_TYPES = {"FREE": 0, "VIDEO": 1, "LINE": 2, "EXT": 3, "SINGLE": 4, "START": 5}
+	TRIGGER_TYPES_INV = dict([(b,a) for (a,b) in TRIGGER_TYPES.iteritems()])
+
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
 		self.res_bw_dirty = True
@@ -69,6 +73,7 @@ class MS2601B:
 		self.scale_dirty = True
 		self.unit_dirty = True
 		self.antenna_dirty = True
+		self.trigger_dirty = True
 		self.correction_data_dirty = True
 		self.response_data_dirty = True
 
@@ -113,6 +118,8 @@ class MS2601B:
 		self.unit_dirty = False
 		self.antenna = "OFF"
 		self.antenna_dirty = False
+		self.trigger = "FREE"
+		self.trigger_dirty = False
 		self.correction_data = True
 		self.correction_data_dirty = False
 		self.response_data = True
@@ -154,6 +161,8 @@ class MS2601B:
 
 	def set_resolution_bandwidth_auto(self, auto):
 		self.res_bw_auto = auto
+		self.res_bw_auto_dirty = False
+		self.res_bw_dirty = True
 		self.set_value("ARB", int(auto))
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
@@ -167,6 +176,7 @@ class MS2601B:
 	def set_resolution_bandwidth(self, rbw):
 		self.res_bw = rbw
 		self.res_bw_dirty = False
+		self.res_bw_auto = False
 		self.set_value("RBW", self.RES_BW[rbw])
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
@@ -180,6 +190,7 @@ class MS2601B:
 	def set_attenuation_auto(self, auto):
 		self.atten_auto = auto
 		self.atten_auto_dirty = False
+		self.atten_dirty = True
 		self.set_value("AAT", int(auto))
 
 	def get_attenuation(self):
@@ -191,6 +202,7 @@ class MS2601B:
 	def set_attenuation(self, atten):
 		self.atten = atten
 		self.atten_dirty = False
+		self.atten_auto = False
 		self.set_value("ATT", self.ATTEN[atten])
 
 	def get_sweep_time_auto(self):
@@ -202,6 +214,7 @@ class MS2601B:
 	def set_sweep_time_auto(self, auto):
 		self.sweep_time_auto = auto
 		self.sweep_time_auto_dirty = False
+		self.sweep_time_dirty = True
 		self.set_value("AST", int(auto))
 
 	def get_sweep_time(self):
@@ -213,6 +226,7 @@ class MS2601B:
 	def set_sweep_time(self, rbw):
 		self.sweep_time = rbw
 		self.sweep_time_dirty = False
+		self.sweep_time_auto = False
 		self.set_value("SWT", self.SWEEP_TIME[rbw])
 
 	def get_video_bandwidth_auto(self):
@@ -224,6 +238,7 @@ class MS2601B:
 	def set_video_bandwidth_auto(self, auto):
 		self.video_bw_auto = auto
 		self.video_bw_auto_dirty = False
+		self.video_bw_dirty = True
 		self.set_value("AVB", int(auto))
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
@@ -237,6 +252,7 @@ class MS2601B:
 	def set_video_bandwidth(self, rbw):
 		self.video_bw = rbw
 		self.video_bw_dirty = False
+		self.video_bw_auto = False
 		self.set_value("VBW", self.VIDEO_BW[rbw])
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
@@ -277,6 +293,20 @@ class MS2601B:
 		self.antenna = antenna
 		self.antenna_dirty = False
 		self.set_value("ANT", self.ANTENNAS[antenna])
+
+	def sweep(self):
+		self.send("SWP")
+	
+	def get_trigger(self):
+		if self.trigger_dirty:
+			self.trigger = self.TRIGGER_TYPES_INV[self.get_value("TRG")]
+			self.trigger_dirty = False
+		return self.trigger
+
+	def set_trigger(self, trigger):
+		self.trigger = trigger
+		self.trigger_dirty = False
+		self.set_value("TRG", self.TRIGGER_TYPES[trigger])
 
 	def start_calibration(self, mode=0):
 		"""
