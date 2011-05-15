@@ -18,6 +18,8 @@ class MainFrame(wx.Frame):
 		self.notebook = wx.Notebook(self, -1, style=0)
 		self.notebook_console = wx.Panel(self.notebook, -1)
 		self.notebook_main = wx.Panel(self.notebook, -1)
+		self.main_settings_panel = wx.Panel(self.notebook_main, -1, style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
+		self.frequency_ref_level_panel = wx.Panel(self.notebook_main, -1, style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
 		
 		# Menu Bar
 		self.menubar = wx.MenuBar()
@@ -70,19 +72,34 @@ class MainFrame(wx.Frame):
 		self.SetMenuBar(self.menubar)
 		# Menu Bar end
 		self.statusbar = self.CreateStatusBar(1, 0)
-		self.res_bw_label = wx.StaticText(self.notebook_main, -1, "Resolution bandwidth")
-		self.res_bw_auto = wx.RadioBox(self.notebook_main, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
-		self.res_bw_select = wx.ComboBox(self.notebook_main, -1, choices=["1 MHz", "300 kHz", "100 kHz", "30 kHz", "10 kHz", "3 kHz", "1 kHz", "300 Hz", "100 Hz", "30 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
-		self.atten_label = wx.StaticText(self.notebook_main, -1, "Attenuation")
-		self.atten_auto = wx.RadioBox(self.notebook_main, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
-		self.atten_select = wx.ComboBox(self.notebook_main, -1, choices=["50 dB", "40 dB", "30 dB", "20 dB", "10 dB", "0 dB"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
-		self.sweep_time_label = wx.StaticText(self.notebook_main, -1, "Sweep time")
-		self.sweep_time_auto = wx.RadioBox(self.notebook_main, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
-		self.sweep_time_select = wx.ComboBox(self.notebook_main, -1, choices=["1000 s", "700 s", "500 s", "300 s", "200 s", "150 s", "100 s", "70 s", "50 s", "30 s", "20 s", "15 s", "10 s", "7 s", "5 s", "3 s", "2 s", "1.5 s", "1 s", "700 ms", "500 ms", "300 ms", "200 ms", "150 ms", "100 ms", "70 ms", "50 ms"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
-		self.video_bw_label = wx.StaticText(self.notebook_main, -1, "Video bandwidth")
-		self.video_bw_auto = wx.RadioBox(self.notebook_main, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
-		self.video_bw_select = wx.ComboBox(self.notebook_main, -1, choices=["-OFF-", "100 kHz", "10 kHz", "1 kHz", "100 Hz", "10 Hz", "1 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
-		self.uncal_label = wx.StaticText(self.notebook_main, -1, "Uncalibrated")
+		self.ref_level_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Reference level")
+		self.ref_level_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
+		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → reference level")
+		self.frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Frequency")
+		self.center_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Center frequency")
+		self.center_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
+		self.peak_to_cf_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → center frequency")
+		self.span_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Span")
+		self.span_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
+		self.zero_span_button = wx.Button(self.frequency_ref_level_panel, -1, "Zero span")
+		self.start_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Start frequency")
+		self.stop_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Stop frequency")
+		self.start_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
+		self.stop_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
+		self.res_bw_label = wx.StaticText(self.main_settings_panel, -1, "Resolution bandwidth")
+		self.res_bw_auto = wx.RadioBox(self.main_settings_panel, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
+		self.res_bw_select = wx.ComboBox(self.main_settings_panel, -1, choices=["1 MHz", "300 kHz", "100 kHz", "30 kHz", "10 kHz", "3 kHz", "1 kHz", "300 Hz", "100 Hz", "30 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.atten_label = wx.StaticText(self.main_settings_panel, -1, "Attenuation")
+		self.atten_auto = wx.RadioBox(self.main_settings_panel, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
+		self.atten_select = wx.ComboBox(self.main_settings_panel, -1, choices=["50 dB", "40 dB", "30 dB", "20 dB", "10 dB", "0 dB"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.sweep_time_label = wx.StaticText(self.main_settings_panel, -1, "Sweep time")
+		self.sweep_time_auto = wx.RadioBox(self.main_settings_panel, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
+		self.sweep_time_select = wx.ComboBox(self.main_settings_panel, -1, choices=["1000 s", "700 s", "500 s", "300 s", "200 s", "150 s", "100 s", "70 s", "50 s", "30 s", "20 s", "15 s", "10 s", "7 s", "5 s", "3 s", "2 s", "1.5 s", "1 s", "700 ms", "500 ms", "300 ms", "200 ms", "150 ms", "100 ms", "70 ms", "50 ms"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.video_bw_label = wx.StaticText(self.main_settings_panel, -1, "Video bandwidth")
+		self.video_bw_auto = wx.RadioBox(self.main_settings_panel, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
+		self.video_bw_select = wx.ComboBox(self.main_settings_panel, -1, choices=["-OFF-", "100 kHz", "10 kHz", "1 kHz", "100 Hz", "10 Hz", "1 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.uncal_label = wx.StaticText(self.main_settings_panel, -1, "Uncalibrated")
+		self.panel_1 = wx.Panel(self.notebook_main, -1)
 		self.console_output_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
 		self.console_input_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_PROCESS_ENTER)
 
@@ -121,6 +138,14 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOGPER_2)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOOP)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_USER)
+		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_ref_level, self.ref_level_spin_ctrl)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_to_ref_level, self.peak_to_ref_level_button)
+		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_center_freq, self.center_freq_spin_ctrl)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_to_center_freq, self.peak_to_cf_button)
+		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_span, self.span_spin_ctrl)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_zero_span, self.zero_span_button)
+		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_start_freq, self.start_freq_spin_ctrl)
+		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_stop_freq, self.stop_freq_spin_ctrl)
 		self.Bind(wx.EVT_RADIOBOX, self.res_bw_auto_handler, self.res_bw_auto)
 		self.Bind(wx.EVT_COMBOBOX, self.res_bw_select_handler, self.res_bw_select)
 		self.Bind(wx.EVT_RADIOBOX, self.atten_auto_handler, self.atten_auto)
@@ -157,12 +182,14 @@ class MainFrame(wx.Frame):
 	def __set_properties(self):
 		# begin wxGlade: MainFrame.__set_properties
 		self.SetTitle("MS2601B GPIB control")
-		self.SetSize((967, 903))
 		self.statusbar.SetStatusWidths([-1])
 		# statusbar fields
 		statusbar_fields = [""]
 		for i in range(len(statusbar_fields)):
 		    self.statusbar.SetStatusText(statusbar_fields[i], i)
+		self.ref_level_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+		self.ref_level_spin_ctrl.SetMinSize((200, 27))
+		self.frequency_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.res_bw_label.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.res_bw_auto.SetSelection(0)
 		self.res_bw_select.SetSelection(-1)
@@ -193,6 +220,45 @@ class MainFrame(wx.Frame):
 		atten_subsizer = wx.FlexGridSizer(1, 2, 0, 0)
 		res_bw_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		res_bw_subsizer = wx.FlexGridSizer(1, 2, 0, 0)
+		frequency_ref_level_sizer = wx.FlexGridSizer(2, 1, 0, 0)
+		frequency_sizer = wx.FlexGridSizer(2, 1, 0, 0)
+		frequency_input_sizer = wx.FlexGridSizer(6, 2, 0, 0)
+		ref_level_sizer = wx.FlexGridSizer(2, 1, 0, 0)
+		ref_level_input_sizer = wx.FlexGridSizer(1, 2, 0, 0)
+		ref_level_sizer.Add(self.ref_level_label, 0, 0, 0)
+		ref_level_input_sizer.Add(self.ref_level_spin_ctrl, 0, 0, 0)
+		ref_level_input_sizer.Add(self.peak_to_ref_level_button, 0, 0, 0)
+		ref_level_input_sizer.AddGrowableRow(0)
+		ref_level_input_sizer.AddGrowableCol(0)
+		ref_level_sizer.Add(ref_level_input_sizer, 1, wx.EXPAND, 0)
+		ref_level_sizer.AddGrowableRow(1)
+		ref_level_sizer.AddGrowableCol(0)
+		frequency_ref_level_sizer.Add(ref_level_sizer, 1, wx.ALL|wx.EXPAND, 2)
+		frequency_sizer.Add(self.frequency_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.center_frequency_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.center_freq_spin_ctrl, 0, 0, 0)
+		frequency_input_sizer.Add(self.peak_to_cf_button, 0, 0, 0)
+		frequency_input_sizer.Add(self.span_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.span_spin_ctrl, 0, 0, 0)
+		frequency_input_sizer.Add(self.zero_span_button, 0, 0, 0)
+		frequency_input_sizer.Add(self.start_frequency_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.stop_frequency_label, 0, 0, 0)
+		frequency_input_sizer.Add(self.start_freq_spin_ctrl, 0, 0, 0)
+		frequency_input_sizer.Add(self.stop_freq_spin_ctrl, 0, 0, 0)
+		frequency_input_sizer.AddGrowableRow(1)
+		frequency_input_sizer.AddGrowableRow(3)
+		frequency_input_sizer.AddGrowableRow(5)
+		frequency_input_sizer.AddGrowableCol(0)
+		frequency_input_sizer.AddGrowableCol(1)
+		frequency_sizer.Add(frequency_input_sizer, 1, wx.EXPAND, 2)
+		frequency_sizer.AddGrowableRow(1)
+		frequency_sizer.AddGrowableCol(0)
+		frequency_ref_level_sizer.Add(frequency_sizer, 1, wx.ALL|wx.EXPAND, 2)
+		self.frequency_ref_level_panel.SetSizer(frequency_ref_level_sizer)
+		frequency_ref_level_sizer.AddGrowableRow(0)
+		frequency_ref_level_sizer.AddGrowableRow(1)
+		frequency_ref_level_sizer.AddGrowableCol(0)
+		main_sizer.Add(self.frequency_ref_level_panel, 1, wx.ALL|wx.EXPAND, 6)
 		res_bw_sizer.Add(self.res_bw_label, 0, 0, 0)
 		res_bw_subsizer.Add(self.res_bw_auto, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 		res_bw_subsizer.Add(self.res_bw_select, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -234,13 +300,15 @@ class MainFrame(wx.Frame):
 		video_bw_sizer.AddGrowableCol(0)
 		main_settings_sizer.Add(video_bw_sizer, 1, wx.ALL|wx.EXPAND, 2)
 		main_settings_sizer.Add(self.uncal_label, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+		self.main_settings_panel.SetSizer(main_settings_sizer)
 		main_settings_sizer.AddGrowableRow(0)
 		main_settings_sizer.AddGrowableRow(1)
 		main_settings_sizer.AddGrowableRow(2)
 		main_settings_sizer.AddGrowableRow(3)
 		main_settings_sizer.AddGrowableRow(4)
 		main_settings_sizer.AddGrowableCol(0)
-		main_sizer.Add(main_settings_sizer, 1, wx.ALL|wx.ALIGN_RIGHT, 5)
+		main_sizer.Add(self.main_settings_panel, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 6)
+		main_sizer.Add(self.panel_1, 1, wx.EXPAND, 0)
 		self.notebook_main.SetSizer(main_sizer)
 		main_sizer.AddGrowableRow(0)
 		main_sizer.AddGrowableRow(1)
@@ -255,6 +323,7 @@ class MainFrame(wx.Frame):
 		self.notebook.AddPage(self.notebook_console, "Console")
 		sizer.Add(self.notebook, 1, wx.EXPAND, 0)
 		self.SetSizer(sizer)
+		sizer.Fit(self)
 		self.Layout()
 		# end wxGlade
 
@@ -351,6 +420,38 @@ class MainFrame(wx.Frame):
 	def video_bw_select_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_video_bandwidth(event.GetString())
 		self.update_res_bw_atten_sweep_time_video_bw()
+
+	def spinctrl_handler_ref_level(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `spinctrl_handler_ref_level' not implemented"
+		event.Skip()
+
+	def button_handler_peak_to_ref_level(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `button_handler_peak_to_ref_level' not implemented"
+		event.Skip()
+
+	def spinctrl_handler_center_freq(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `spinctrl_handler_center_freq' not implemented"
+		event.Skip()
+
+	def button_handler_peak_to_center_freq(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `button_handler_peak_to_center_freq' not implemented"
+		event.Skip()
+
+	def spinctrl_handler_span(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `spinctrl_handler_span' not implemented"
+		event.Skip()
+
+	def button_handler_zero_span(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `button_handler_zero_span' not implemented"
+		event.Skip()
+
+	def spinctrl_handler_start_freq(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `spinctrl_handler_start_freq' not implemented"
+		event.Skip()
+
+	def spinctrl_handler_stop_freq(self, event): # wxGlade: MainFrame.<event_handler>
+		print "Event handler `spinctrl_handler_stop_freq' not implemented"
+		event.Skip()
 
 	def update_res_bw_atten_sweep_time_video_bw(self):
 		self.res_bw_auto.SetSelection((1-int(self.ms2601b.get_resolution_bandwidth_auto())))
