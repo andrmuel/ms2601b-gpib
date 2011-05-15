@@ -38,6 +38,14 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_LEVEL_2, "Level (2)", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_CALIBRATION_FREQUENCY, "Frequency", "", wx.ITEM_NORMAL)
 		self.menubar.Append(wxglade_tmp_menu, "Calibration")
+		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_ANTENNA_OFF, "Off", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_ANTENNA_DIPOLE, "Dipole", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_ANTENNA_LOGPER_1, "Logarithmic periodic (1)", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_ANTENNA_LOGPER_2, "Logarithmic periodic (2)", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_ANTENNA_LOOP, "Loop", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_ANTENNA_USER, "User", "", wx.ITEM_RADIO)
+		self.menubar.Append(wxglade_tmp_menu, "Antenna")
 		self.SetMenuBar(self.menubar)
 		# Menu Bar end
 		self.statusbar = self.CreateStatusBar(1, 0)
@@ -71,6 +79,12 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_1, id=MENU_CALIBRATION_LEVEL_1)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_level_2, id=MENU_CALIBRATION_LEVEL_2)
 		self.Bind(wx.EVT_MENU, self.menu_handler_calibrate_frequency, id=MENU_CALIBRATION_FREQUENCY)
+		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_OFF)
+		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_DIPOLE)
+		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOGPER_1)
+		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOGPER_2)
+		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOOP)
+		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_USER)
 		self.Bind(wx.EVT_RADIOBOX, self.res_bw_auto_handler, self.res_bw_auto)
 		self.Bind(wx.EVT_COMBOBOX, self.res_bw_select_handler, self.res_bw_select)
 		self.Bind(wx.EVT_RADIOBOX, self.atten_auto_handler, self.atten_auto)
@@ -86,11 +100,13 @@ class MainFrame(wx.Frame):
 		# set scale menu correctly
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
-		self.menubar.FindItemById(self.SCALE_TO_MENUITEM_ID[self.ms2601b.get_scale()]).Check(True)
+		self.update_scale_menu()
+		# set antenna menu correctly
+		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
+		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
+		self.update_antenna_menu()
 		# update main settings with actual values
 		self.update_res_bw_atten_sweep_time_video_bw()
-		# update sweep time with actual values
-		self.updat_atten()
 
 	def __set_properties(self):
 		# begin wxGlade: MainFrame.__set_properties
@@ -227,6 +243,8 @@ class MainFrame(wx.Frame):
 		self.statusbar.SetStatusText("Reset to initial values ...")
 		self.ms2601b.set_initial()
 		self.update_res_bw_atten_sweep_time_video_bw()
+		self.update_scale_menu()
+		self.update_antenna_menu()
 
 	def menu_handler_local(self, event): # wxGlade: MainFrame.<event_handler>
 		self.statusbar.SetStatusText("Returning control to local ...")
@@ -234,6 +252,9 @@ class MainFrame(wx.Frame):
 
 	def menu_handler_scale(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_scale(self.MENUITEM_ID_TO_SCALE[event.GetId()])
+
+	def menu_handler_antenna(self, event):
+		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
 
 	def res_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth_auto(event.GetString()=="Auto")
@@ -245,11 +266,11 @@ class MainFrame(wx.Frame):
 
 	def atten_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_attenuation_auto(event.GetString()=="Auto")
-		self.updat_atten()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def atten_select_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_attenuation(event.GetString())
-		self.updat_atten()
+		self.update_res_bw_atten_sweep_time_video_bw()
 
 	def sweep_time_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_sweep_time_auto(event.GetString()=="Auto")
@@ -278,9 +299,12 @@ class MainFrame(wx.Frame):
 		self.video_bw_select.SetStringSelection(self.ms2601b.get_video_bandwidth())
 		self.uncal_label.Show(self.ms2601b.get_uncal_status())
 
-	def updat_atten(self):
-		self.atten_auto.SetSelection((1-int(self.ms2601b.get_attenuation_auto())))
-		self.atten_select.SetStringSelection(self.ms2601b.get_attenuation())
+	def update_scale_menu(self):
+		self.menubar.FindItemById(self.SCALE_TO_MENUITEM_ID[self.ms2601b.get_scale()]).Check(True)
+
+	def update_antenna_menu(self):
+		self.menubar.FindItemById(self.ANTENNA_TO_MENUITEM_ID[self.ms2601b.get_antenna()]).Check(True)
+		
 
 # end of class MainFrame
 

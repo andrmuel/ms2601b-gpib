@@ -24,18 +24,35 @@ class MS2601B:
 	MS2601B remote control via GPIB.
 	"""
 
+	# calibration modes
 	CAL_MODES = {"ALL": 0, "FREQ": 1, "LEVEL (1)": 2, "LEVEL (2)": 3}
 	CAL_MODES_INV =  dict([(b,a) for (a,b) in CAL_MODES.iteritems()])
+
+	# scales
 	SCALE = { "1 dB": 0, "2 dB": 1, "5 dB": 2, "10 dB": 3, "Linear": 4}
 	SCALE_INV = dict([(b,a) for (a,b) in SCALE.iteritems()])
+
+	# units
+
+	# resolution bandwidth
 	RES_BW = {"30 Hz": 0, "100 Hz": 1, "300 Hz": 2, "1 kHz": 3, "3 kHz": 4, "10 kHz": 5, "30 kHz": 6, "100 kHz": 7, "300 kHz": 8, "1 MHz": 9, "200 Hz": 10, "9 kHz": 11, "120 kHz": 12}
 	RES_BW_INV = dict([(b,a) for (a,b) in RES_BW.iteritems()])
+
+	# attenuation
 	ATTEN = {"0 dB": 0, "10 dB": 1, "20 dB": 2, "30 dB": 3, "40 dB": 4, "50 dB": 5}
 	ATTEN_INV = dict([(b,a) for (a,b) in ATTEN.iteritems()])
+
+	# sweep time
 	SWEEP_TIME = {"1000 s": 1e6, "700 s": 7e5, "500 s": 5e5, "300 s": 3e5, "200 s": 2e5, "150 s": 1.5e5, "100 s": 1e5, "70 s": 7e4, "50 s": 5e4, "30 s": 3e4, "20 s": 2e4, "15 s": 1.5e4, "10 s": 1e4, "7 s": 7000, "5 s": 5000, "3 s": 3000, "2 s": 2000, "1.5 s": 1500, "1 s": 1000, "700 ms": 700, "500 ms": 500, "300 ms": 300, "200 ms": 200, "150 ms": 150, "100 ms": 100, "70 ms": 70, "50 ms": 50}
 	SWEEP_TIME_INV = dict([(b,a) for (a,b) in SWEEP_TIME.iteritems()])
+
+	# video bandwidth
 	VIDEO_BW = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2, "1 kHz": 3, "10 kHz": 4, "100 kHz": 5, "OFF": 6}
 	VIDEO_BW_INV = dict([(b,a) for (a,b) in VIDEO_BW.iteritems()])
+
+	# antennas
+	ANTENNAS = {"DIPOLE": 0, "LOG-PERIODIC (1)": 1, "LOG-PERIODIC (2)": 2, "LOOP": 3, "USER": 4, "OFF": 5}
+	ANTENNAS_INV = dict([(b,a) for (a,b) in ANTENNAS.iteritems()])
 
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
@@ -47,6 +64,8 @@ class MS2601B:
 		self.sweep_time_auto_dirty = True
 		self.video_bw_dirty = True
 		self.video_bw_auto_dirty = True
+		self.scale_dirty = True
+		self.antenna_dirty = True
 
 	def send(self, command):
 		self.gpib.gpib_send(command)
@@ -83,6 +102,10 @@ class MS2601B:
 		self.video_bw_auto_dirty = False
 		self.video_bw = "100 kHz"
 		self.video_bw_dirty = False
+		self.scale = "10 dB"
+		self.scale_dirty = False
+		self.antenna = "OFF"
+		self.antenna_dirty = False
 
 	def get_center_frequency(self):
 		"""
@@ -212,12 +235,26 @@ class MS2601B:
 		return self.uncal
 
 	def get_scale(self):
-		self.scale = self.SCALE_INV[self.get_value("SCL")]
+		if self.scale_dirty:
+			self.scale = self.SCALE_INV[self.get_value("SCL")]
+			self.scale_dirty = False
 		return self.scale
 		
 	def set_scale(self, scale):
 		self.scale = scale
+		self.scale_dirty = False
 		self.set_value("SCL", self.SCALE[scale])
+	
+	def get_antenna(self):
+		if self.antenna_dirty:
+			self.antenna = self.ANTENNAS_INV[self.get_value("ANT")]
+			self.antenna_dirty = False
+		return self.antenna
+
+	def set_antenna(self, antenna):
+		self.antenna = antenna
+		self.antenna_dirty = False
+		self.set_value("ANT", self.ANTENNAS[antenna])
 
 	def start_calibration(self, mode=0):
 		"""
