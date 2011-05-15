@@ -29,6 +29,13 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_LOCAL, "Local control", "", wx.ITEM_NORMAL)
 		self.menubar.Append(wxglade_tmp_menu, "Device")
 		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_ENABLED, "Enable frequency count", "", wx.ITEM_CHECK)
+		wxglade_tmp_menu.AppendSeparator()
+		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_RES_1HZ, "1 Hz Resolution", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_RES_10HZ, "10 Hz Resolution", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_RES_100HZ, "100 Hz Resolution", "", wx.ITEM_RADIO)
+		self.menubar.Append(wxglade_tmp_menu, "Counter")
+		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_SCALE_1DB, "Log 1dB", "", wx.ITEM_RADIO)
 		wxglade_tmp_menu.Append(MENU_SCALE_2DB, "Log 2dB", "", wx.ITEM_RADIO)
 		wxglade_tmp_menu.Append(MENU_SCALE_5DB, "Log 5dB", "", wx.ITEM_RADIO)
@@ -102,6 +109,8 @@ class MainFrame(wx.Frame):
 		self.video_bw_auto = wx.RadioBox(self.main_settings_panel, -1, "Auto/Manual", choices=["Auto", "Manual"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
 		self.video_bw_select = wx.ComboBox(self.main_settings_panel, -1, choices=["-OFF-", "100 kHz", "10 kHz", "1 kHz", "100 Hz", "10 Hz", "1 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.uncal_label = wx.StaticText(self.main_settings_panel, -1, "Uncalibrated")
+		self.marker_panel = wx.Panel(self.notebook_main, -1)
+		self.trace_panel = wx.Panel(self.notebook_main, -1)
 		self.console_output_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
 		self.console_input_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_PROCESS_ENTER)
 
@@ -111,6 +120,10 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_initial, id=MENU_INITIAL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_update_all, id=MENU_UPDATE_ALL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_local, id=MENU_LOCAL)
+		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_enable, id=MENU_FREQ_COUNT_ENABLED)
+		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_1HZ)
+		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_10HZ)
+		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_100HZ)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_1DB)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_2DB)
 		self.Bind(wx.EVT_MENU, self.menu_handler_scale, id=MENU_SCALE_5DB)
@@ -170,7 +183,10 @@ class MainFrame(wx.Frame):
 		self.update_frequencies()
 		# set up reference level range
 		self.ref_level_spin_ctrl.SetRange(self.ms2601b.REF_LEVEL_MIN, self.ms2601b.REF_LEVEL_MAX)
-		# set scale menu IDs
+		# set up frequency counter resolution menu IDs
+		self.FREQ_COUNT_RES_TO_MENUITEM_ID = {"1 Hz": MENU_FREQ_COUNT_RES_1HZ, "10 Hz": MENU_FREQ_COUNT_RES_10HZ, "100 Hz": MENU_FREQ_COUNT_RES_100HZ}
+		self.MENUITEM_ID_TO_FREQ_COUNT_RES = dict([(b,a) for (a,b) in self.FREQ_COUNT_RES_TO_MENUITEM_ID.iteritems()])
+		# set up scale menu IDs
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
 		# set unit menu IDs
@@ -188,7 +204,7 @@ class MainFrame(wx.Frame):
 	def __set_properties(self):
 		# begin wxGlade: MainFrame.__set_properties
 		self.SetTitle("MS2601B GPIB control")
-		self.statusbar.SetStatusWidths([-1, 70, 70, 80])
+		self.statusbar.SetStatusWidths([-1, 60, 70, 70])
 		# statusbar fields
 		statusbar_fields = ["", "", "", ""]
 		for i in range(len(statusbar_fields)):
@@ -321,6 +337,8 @@ class MainFrame(wx.Frame):
 		main_settings_sizer.AddGrowableRow(4)
 		main_settings_sizer.AddGrowableCol(0)
 		main_sizer.Add(self.main_settings_panel, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 6)
+		main_sizer.Add(self.marker_panel, 1, wx.EXPAND, 0)
+		main_sizer.Add(self.trace_panel, 1, wx.EXPAND, 0)
 		self.notebook_main.SetSizer(main_sizer)
 		main_sizer.AddGrowableRow(0)
 		main_sizer.AddGrowableRow(1)
@@ -338,28 +356,6 @@ class MainFrame(wx.Frame):
 		sizer.Fit(self)
 		self.Layout()
 		# end wxGlade
-
-	def menu_handler_calibrate_all(self, event): # wxGlade: MainFrame.<event_handler>
-		self.statusbar.SetStatusText("Starting calibration: ALL")
-		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["ALL"])
-
-	def menu_handler_calibrate_frequency(self, event): # wxGlade: MainFrame.<event_handler>
-		self.statusbar.SetStatusText("Starting calibration: FREQ")
-		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["FREQ"])
-
-	def menu_handler_calibrate_level_1(self, event): # wxGlade: MainFrame.<event_handler>
-		self.statusbar.SetStatusText("Starting calibration: LEVEL (1)")
-		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["LEVEL (1)"])
-
-	def menu_handler_calibrate_level_2(self, event): # wxGlade: MainFrame.<event_handler>
-		self.statusbar.SetStatusText("Starting calibration: LEVEL (2)")
-		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["LEVEL (2)"])
-		
-	def menu_handler_calibration_correction_data(self, event): # wxGlade: MainFrame.<event_handler>
-		self.ms2601b.set_correction_data(event.IsChecked())
-
-	def menu_handler_calibration_response_data(self, event): # wxGlade: MainFrame.<event_handler>
-		self.ms2601b.set_response_data(event.IsChecked())
 
 	def console_input_enter_event(self, event): # wxGlade: MainFrame.<event_handler>
 		command = self.console_input_text_ctrl.GetValue()
@@ -385,12 +381,19 @@ class MainFrame(wx.Frame):
 		self.statusbar.SetStatusText("Returning control to local ...")
 		self.ms2601b.gpib.set_loc()
 
+	def menu_handler_freq_count_enable(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_frequency_count_enabled(event.IsChecked())
+
+	def menu_handler_freq_count_resolution(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_frequency_count_resolution(self.MENUITEM_ID_TO_FREQ_COUNT_RES[event.GetId()])
+
 	def menu_handler_scale(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_scale(self.MENUITEM_ID_TO_SCALE[event.GetId()])
 		self.update_statusbar()
 
-	def menu_handler_antenna(self, event): # wxGlade: MainFrame.<event_handler>
-		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
+	def menu_handler_unit(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_unit(self.MENUITEM_ID_TO_UNIT[event.GetId()])
+		self.update_statusbar()
 
 	def menu_handler_trigger(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_trigger(self.MENUITEM_ID_TO_TRIGGER_TYPE[event.GetId()])
@@ -399,9 +402,30 @@ class MainFrame(wx.Frame):
 	def menu_handler_trigger_sweep(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.sweep()
 
-	def menu_handler_unit(self, event): # wxGlade: MainFrame.<event_handler>
-		self.ms2601b.set_unit(self.MENUITEM_ID_TO_UNIT[event.GetId()])
-		self.update_statusbar()
+	def menu_handler_calibrate_all(self, event): # wxGlade: MainFrame.<event_handler>
+		self.statusbar.SetStatusText("Starting calibration: ALL")
+		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["ALL"])
+
+	def menu_handler_calibrate_frequency(self, event): # wxGlade: MainFrame.<event_handler>
+		self.statusbar.SetStatusText("Starting calibration: FREQ")
+		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["FREQ"])
+
+	def menu_handler_calibrate_level_1(self, event): # wxGlade: MainFrame.<event_handler>
+		self.statusbar.SetStatusText("Starting calibration: LEVEL (1)")
+		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["LEVEL (1)"])
+
+	def menu_handler_calibrate_level_2(self, event): # wxGlade: MainFrame.<event_handler>
+		self.statusbar.SetStatusText("Starting calibration: LEVEL (2)")
+		self.ms2601b.start_calibration(self.ms2601b.CAL_MODES["LEVEL (2)"])
+		
+	def menu_handler_calibration_correction_data(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_correction_data(event.IsChecked())
+
+	def menu_handler_calibration_response_data(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_response_data(event.IsChecked())
+
+	def menu_handler_antenna(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
 
 	def res_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth_auto(event.GetString()=="Auto")
@@ -490,6 +514,7 @@ class MainFrame(wx.Frame):
 		self.update_frequencies()
 		self.update_reference_level()
 		self.update_res_bw_atten_sweep_time_video_bw()
+		self.update_counter_menu()
 		self.update_scale_menu()
 		self.update_unit_menu()
 		self.update_antenna_menu()
@@ -516,6 +541,10 @@ class MainFrame(wx.Frame):
 		self.video_bw_auto.SetSelection((1-int(self.ms2601b.get_video_bandwidth_auto())))
 		self.video_bw_select.SetStringSelection(self.ms2601b.get_video_bandwidth())
 		self.uncal_label.Show(self.ms2601b.get_uncal_status())
+
+	def update_counter_menu(self):
+		self.menubar.FindItemById(MENU_FREQ_COUNT_ENABLED).Check(self.ms2601b.get_frequency_count_enabled())
+		self.menubar.FindItemById(self.FREQ_COUNT_RES_TO_MENUITEM_ID[self.ms2601b.get_frequency_count_resolution()]).Check(True)
 
 	def update_scale_menu(self):
 		self.menubar.FindItemById(self.SCALE_TO_MENUITEM_ID[self.ms2601b.get_scale()]).Check(True)

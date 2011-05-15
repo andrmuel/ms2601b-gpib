@@ -70,6 +70,10 @@ class MS2601B:
 	TRIGGER_TYPES = {"FREE": 0, "VIDEO": 1, "LINE": 2, "EXT": 3, "SINGLE": 4, "START": 5}
 	TRIGGER_TYPES_INV = dict([(b,a) for (a,b) in TRIGGER_TYPES.iteritems()])
 
+	# frequency counter resolutions
+	FREQ_COUNT_RES = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2}
+	FREQ_COUNT_RES_INV = dict([(b,a) for (a,b) in FREQ_COUNT_RES.iteritems()])
+
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
 		self.set_all_values_dirty()
@@ -93,6 +97,8 @@ class MS2601B:
 		self.trigger_dirty = True
 		self.correction_data_dirty = True
 		self.response_data_dirty = True
+		self.freq_count_enabled_dirty = True
+		self.freq_count_resolution_dirty = True
 
 	def send(self, command):
 		self.gpib.gpib_send(command)
@@ -154,6 +160,10 @@ class MS2601B:
 		self.correction_data_dirty = False
 		self.response_data = True
 		self.response_data_dirty = False
+		self.freq_count_enabled = False
+		self.freq_count_enabled_dirty = False
+		self.freq_count_resolution = "10 Hz"
+		self.freq_count_resolution_dirty = False
 
 	def get_reference_level(self):
 		if self.ref_level_dirty:
@@ -413,6 +423,29 @@ class MS2601B:
 		self.response_data = enabled
 		self.response_data_dirty = False
 		self.set_int_value("CRE", int(enabled))
+
+	def get_frequency_count_enabled(self):
+		if self.freq_count_enabled_dirty:
+			self.freq_count_enabled = bool(self.get_int_value("MKC"))
+			self.freq_count_enabled_dirty = False
+		return self.freq_count_enabled
+
+	def set_frequency_count_enabled(self, enabled):
+		self.freq_count_enabled = enabled
+		self.freq_count_enabled_dirty = False
+		self.set_int_value("MKC", int(enabled))
+
+	def get_frequency_count_resolution(self):
+		if self.freq_count_resolution_dirty:
+			self.freq_count_resolution = self.FREQ_COUNT_RES_INV[self.get_int_value("CRE")]
+			self.freq_count_resolution_dirty = False
+		return self.freq_count_resolution
+
+	def set_frequency_count_resolution(self, resolution):
+		self.set_int_value("CRE", self.FREQ_COUNT_RES[resolution])
+		self.freq_count_resolution = resolution
+		self.freq_count_enabled_dirty = False
+			
 
 if __name__ == "__main__":
 	ms2601b = MS2601B()
