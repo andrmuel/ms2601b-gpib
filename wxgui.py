@@ -84,6 +84,7 @@ class MainFrame(wx.Frame):
 		self.statusbar = self.CreateStatusBar(4, 0)
 		self.ref_level_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Reference level")
 		self.ref_level_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
+		self.unit_combo_box = wx.ComboBox(self.frequency_ref_level_panel, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → reference level")
 		self.frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Frequency")
 		self.center_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Center frequency (kHz)")
@@ -157,6 +158,8 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOOP)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_USER)
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_ref_level, self.ref_level_spin_ctrl)
+		self.Bind(wx.EVT_TEXT_ENTER, self.combobox_handler_unit_selection, self.unit_combo_box)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_unit_selection, self.unit_combo_box)
 		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_to_ref_level, self.peak_to_ref_level_button)
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_center_freq, self.center_freq_spin_ctrl)
 		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_to_center_freq, self.peak_to_cf_button)
@@ -192,8 +195,10 @@ class MainFrame(wx.Frame):
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
 		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
 		# set unit menu IDs
-		self.UNIT_TO_MENUITEM_ID = {"dBm": MENU_UNIT_DBM, "dBµV": MENU_UNIT_DBUV, "dBV": MENU_UNIT_DBV, "V": MENU_UNIT_V, "dBµV (emf)": MENU_UNIT_DBUV_EMF, "dBµV/m": MENU_UNIT_DBUV_M}
+		self.UNIT_TO_MENUITEM_ID = {u"dBm": MENU_UNIT_DBM, u"dBµV": MENU_UNIT_DBUV, u"dBV": MENU_UNIT_DBV, u"V": MENU_UNIT_V, u"dBµV (emf)": MENU_UNIT_DBUV_EMF, u"dBµV/m": MENU_UNIT_DBUV_M}
 		self.MENUITEM_ID_TO_UNIT = dict([(b,a) for (a,b) in self.UNIT_TO_MENUITEM_ID.iteritems()])
+		# set up units combobox
+		self.unit_combo_box.AppendItems([i[1] for i in sorted(self.ms2601b.UNITS_INV.items())])
 		# set antenna menu IDs
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
 		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
@@ -213,6 +218,7 @@ class MainFrame(wx.Frame):
 		    self.statusbar.SetStatusText(statusbar_fields[i], i)
 		self.ref_level_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.ref_level_spin_ctrl.SetMinSize((100, 27))
+		self.unit_combo_box.SetMinSize((80, 27))
 		self.frequency_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.center_freq_spin_ctrl.SetMinSize((100, 27))
 		self.span_spin_ctrl.SetMinSize((100, 27))
@@ -255,14 +261,17 @@ class MainFrame(wx.Frame):
 		frequency_ref_level_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		frequency_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		frequency_input_sizer = wx.FlexGridSizer(6, 2, 0, 0)
-		ref_level_sizer = wx.FlexGridSizer(2, 1, 0, 0)
-		ref_level_input_sizer = wx.FlexGridSizer(1, 2, 0, 0)
+		ref_level_sizer = wx.FlexGridSizer(4, 1, 0, 0)
+		ref_level_input_sizer = wx.FlexGridSizer(1, 4, 0, 0)
 		ref_level_sizer.Add(self.ref_level_label, 0, 0, 0)
 		ref_level_input_sizer.Add(self.ref_level_spin_ctrl, 0, 0, 0)
+		ref_level_input_sizer.Add(self.unit_combo_box, 0, 0, 0)
 		ref_level_input_sizer.Add(self.peak_to_ref_level_button, 0, 0, 0)
 		ref_level_input_sizer.AddGrowableRow(0)
 		ref_level_input_sizer.AddGrowableCol(0)
 		ref_level_input_sizer.AddGrowableCol(1)
+		ref_level_input_sizer.AddGrowableCol(2)
+		ref_level_input_sizer.AddGrowableCol(3)
 		ref_level_sizer.Add(ref_level_input_sizer, 1, wx.EXPAND, 0)
 		ref_level_sizer.AddGrowableRow(1)
 		ref_level_sizer.AddGrowableCol(0)
@@ -407,6 +416,7 @@ class MainFrame(wx.Frame):
 
 	def menu_handler_unit(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_unit(self.MENUITEM_ID_TO_UNIT[event.GetId()])
+		self.update_unit_combobox()
 		self.update_statusbar()
 
 	def menu_handler_trigger(self, event): # wxGlade: MainFrame.<event_handler>
@@ -524,6 +534,20 @@ class MainFrame(wx.Frame):
 		self.ms2601b.set_span(0)
 		self.update_frequencies()
 
+	def combobox_handler_unit_selection(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_unit(self.ms2601b.UNITS_INV[self.unit_combo_box.GetSelection()])
+		self.update_unit_menu()
+		self.update_statusbar()
+
+	def combobox_handler_reference_line(self, event): # wxGlade: MainFrame.<event_handler>
+		value = self.reference_line_combobox.GetValue().upper()
+		if value == "TOP":
+			self.ms2601b.set_reference_line("TOP")
+		elif value == "MIDDLE":
+			self.ms2601b.set_reference_line("MDL")
+		elif value == "BOTTOM":
+			self.ms2601b.set_reference_line("BOT")
+
 	def update_all_values(self):
 		self.update_frequencies()
 		self.update_reference_level()
@@ -531,6 +555,7 @@ class MainFrame(wx.Frame):
 		self.update_counter_menu()
 		self.update_scale_menu()
 		self.update_unit_menu()
+		self.update_unit_combobox()
 		self.update_antenna_menu()
 		self.update_calibration_menu()
 		self.update_trigger_menu()
@@ -565,6 +590,9 @@ class MainFrame(wx.Frame):
 
 	def update_unit_menu(self):
 		self.menubar.FindItemById(self.UNIT_TO_MENUITEM_ID[self.ms2601b.get_unit()]).Check(True)
+	
+	def update_unit_combobox(self):
+		self.unit_combo_box.SetSelection(self.ms2601b.UNITS[self.ms2601b.get_unit()])
 
 	def update_antenna_menu(self):
 		self.menubar.FindItemById(self.ANTENNA_TO_MENUITEM_ID[self.ms2601b.get_antenna()]).Check(True)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# coding: utf8
+# coding: utf-8
 #
 # Andreas Müller, 2011
 # am@0x7.ch
@@ -43,8 +43,11 @@ class MS2601B:
 	SCALE_INV = dict([(b,a) for (a,b) in SCALE.iteritems()])
 
 	# units
-	UNITS = {"dBm": 0, "dBµV": 1, "dBV": 2, "V": 3, "dBµV (emf)": 4, "dBµV/m": 5}
+	UNITS = {u'dBm': 0, u'dBµV': 1, u'dBV': 2, u'V': 3, u'dBµV (emf)': 4, u'dBµV/m': 5}
 	UNITS_INV = dict([(b,a) for (a,b) in UNITS.iteritems()])
+
+	# reference line
+	REF_LINE = {"TOP": 0, "MDL": 1, "BOT" : 2}
 
 	# resolution bandwidth
 	RES_BW = {"30 Hz": 0, "100 Hz": 1, "300 Hz": 2, "1 kHz": 3, "3 kHz": 4, "10 kHz": 5, "30 kHz": 6, "100 kHz": 7, "300 kHz": 8, "1 MHz": 9, "200 Hz": 10, "9 kHz": 11, "120 kHz": 12}
@@ -367,6 +370,9 @@ class MS2601B:
 		self.unit = unit
 		self.unit_dirty = False
 		self.set_int_value("UNT", self.UNITS[unit])
+
+	def set_reference_line(self, position):
+		self.set_int_value("RLN", self.REF_LINE[position])
 	
 	def get_antenna(self):
 		if self.antenna_dirty:
