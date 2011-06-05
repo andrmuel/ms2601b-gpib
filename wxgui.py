@@ -114,6 +114,26 @@ class MainFrame(wx.Frame):
 		self.uncal_label = wx.StaticText(self.main_settings_panel, -1, "Uncalibrated")
 		self.marker_label = wx.StaticText(self.marker_panel, -1, "Marker")
 		self.trace_label = wx.StaticText(self.trace_panel, -1, "Trace")
+		self.channel_a_read_radiobox = wx.RadioBox(self.trace_panel, -1, "A read:", choices=["Off", "On"], majorDimension=2, style=wx.RA_SPECIFY_ROWS)
+		self.channel_a_write_radiobox = wx.RadioBox(self.trace_panel, -1, "A write:", choices=["Off", "On", "SA"], majorDimension=3, style=wx.RA_SPECIFY_ROWS)
+		self.channel_b_read_radiobox = wx.RadioBox(self.trace_panel, -1, "B read:", choices=["Off", "On"], majorDimension=2, style=wx.RA_SPECIFY_ROWS)
+		self.channel_b_write_radiobox = wx.RadioBox(self.trace_panel, -1, "B write:", choices=["Off", "On", "SA"], majorDimension=3, style=wx.RA_SPECIFY_ROWS)
+		self.a_mode_label = wx.StaticText(self.trace_panel, -1, "A mode:")
+		self.average_rate_label = wx.StaticText(self.trace_panel, -1, "Average rate:")
+		self.b_mode_label = wx.StaticText(self.trace_panel, -1, "B mode:")
+		self.placeholder_panel_3 = wx.Panel(self.trace_panel, -1)
+		self.a_mode_combo_box = wx.ComboBox(self.trace_panel, -1, choices=["Normal", "Max hold", "Average", "Min hold", "Cumulative", "Overwrite"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.average_rate_combo_box = wx.ComboBox(self.trace_panel, -1, choices=["4", "8", "16", "32", "128"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.b_mode_combo_box = wx.ComboBox(self.trace_panel, -1, choices=["Normal", "Max hold", "Average", "Min hold", "Cumulative", "Overwrite"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.placeholder_panel_4 = wx.Panel(self.trace_panel, -1)
+		self.a_minus_b_mode_label = wx.StaticText(self.trace_panel, -1, "A - B mode:")
+		self.placeholder_panel_6 = wx.Panel(self.trace_panel, -1)
+		self.reference_line_label = wx.StaticText(self.trace_panel, -1, "Ref. line:")
+		self.det_mode_label = wx.StaticText(self.trace_panel, -1, "Det. mode:")
+		self.a_minus_b_combo_box = wx.ComboBox(self.trace_panel, -1, choices=["Off", u"A-B → A", u"A-SA → A", u"B-SB → B"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.a_to_b_button = wx.Button(self.trace_panel, -1, u"A → B")
+		self.reference_line_combobox = wx.ComboBox(self.trace_panel, -1, choices=["Top", "Middle", "Bottom"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.det_mode_combobox = wx.ComboBox(self.trace_panel, -1, choices=["Peak", "Sample", "Dip"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.console_output_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
 		self.console_input_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_PROCESS_ENTER)
 
@@ -175,6 +195,17 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_COMBOBOX, self.sweep_time_select_handler, self.sweep_time_select)
 		self.Bind(wx.EVT_RADIOBOX, self.video_bw_auto_handler, self.video_bw_auto)
 		self.Bind(wx.EVT_COMBOBOX, self.video_bw_select_handler, self.video_bw_select)
+		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_a_read, self.channel_a_read_radiobox)
+		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_a_write, self.channel_a_write_radiobox)
+		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_b_read, self.channel_b_read_radiobox)
+		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_b_write, self.channel_b_write_radiobox)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_a_mode, self.a_mode_combo_box)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_average_rate, self.average_rate_combo_box)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_b_mode, self.b_mode_combo_box)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_a_minus_b_mode, self.a_minus_b_combo_box)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_a_to_b, self.a_to_b_button)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_reference_line, self.reference_line_combobox)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_det_mode, self.det_mode_combobox)
 		self.Bind(wx.EVT_TEXT_ENTER, self.console_input_enter_event, self.console_input_text_ctrl)
 		# end wxGlade
 		
@@ -240,6 +271,23 @@ class MainFrame(wx.Frame):
 		self.uncal_label.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.marker_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.trace_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+		self.channel_a_read_radiobox.SetSelection(0)
+		self.channel_a_write_radiobox.SetSelection(0)
+		self.channel_b_read_radiobox.SetSelection(0)
+		self.channel_b_write_radiobox.SetSelection(0)
+		self.a_mode_combo_box.SetMinSize((100, 27))
+		self.a_mode_combo_box.SetSelection(0)
+		self.average_rate_combo_box.SetMinSize((100, 27))
+		self.average_rate_combo_box.SetSelection(1)
+		self.b_mode_combo_box.SetMinSize((100, 27))
+		self.b_mode_combo_box.SetSelection(0)
+		self.placeholder_panel_4.SetMinSize((100, 27))
+		self.a_minus_b_combo_box.SetMinSize((100, 27))
+		self.a_minus_b_combo_box.SetSelection(0)
+		self.reference_line_combobox.SetMinSize((100, 27))
+		self.reference_line_combobox.SetSelection(1)
+		self.det_mode_combobox.SetMinSize((100, 27))
+		self.det_mode_combobox.SetSelection(0)
 		# end wxGlade
 
 	def __do_layout(self):
@@ -248,6 +296,7 @@ class MainFrame(wx.Frame):
 		console_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		main_sizer = wx.FlexGridSizer(2, 2, 0, 0)
 		trace_sizer = wx.FlexGridSizer(2, 1, 0, 0)
+		trace_subsizer = wx.FlexGridSizer(5, 4, 0, 0)
 		marker_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		main_settings_sizer = wx.FlexGridSizer(5, 1, 0, 0)
 		video_bw_sizer = wx.FlexGridSizer(2, 1, 0, 0)
@@ -275,7 +324,7 @@ class MainFrame(wx.Frame):
 		ref_level_sizer.Add(ref_level_input_sizer, 1, wx.EXPAND, 0)
 		ref_level_sizer.AddGrowableRow(1)
 		ref_level_sizer.AddGrowableCol(0)
-		frequency_ref_level_sizer.Add(ref_level_sizer, 1, wx.ALL|wx.EXPAND, 2)
+		frequency_ref_level_sizer.Add(ref_level_sizer, 1, wx.ALL, 2)
 		frequency_sizer.Add(self.frequency_label, 0, 0, 0)
 		frequency_input_sizer.Add(self.center_frequency_label, 0, 0, 0)
 		frequency_input_sizer.Add(self.placeholder_panel_1, 1, wx.EXPAND, 0)
@@ -302,7 +351,7 @@ class MainFrame(wx.Frame):
 		frequency_ref_level_sizer.AddGrowableRow(0)
 		frequency_ref_level_sizer.AddGrowableRow(1)
 		frequency_ref_level_sizer.AddGrowableCol(0)
-		main_sizer.Add(self.frequency_ref_level_panel, 1, wx.ALL|wx.EXPAND, 6)
+		main_sizer.Add(self.frequency_ref_level_panel, 1, wx.ALL, 6)
 		res_bw_sizer.Add(self.res_bw_label, 0, 0, 0)
 		res_bw_subsizer.Add(self.res_bw_auto, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 		res_bw_subsizer.Add(self.res_bw_select, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -351,17 +400,38 @@ class MainFrame(wx.Frame):
 		main_settings_sizer.AddGrowableRow(3)
 		main_settings_sizer.AddGrowableRow(4)
 		main_settings_sizer.AddGrowableCol(0)
-		main_sizer.Add(self.main_settings_panel, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 6)
-		marker_sizer.Add(self.marker_label, 0, 0, 0)
+		main_sizer.Add(self.main_settings_panel, 1, wx.RIGHT|wx.TOP|wx.BOTTOM, 6)
+		marker_sizer.Add(self.marker_label, 0, wx.ALL, 2)
 		self.marker_panel.SetSizer(marker_sizer)
 		marker_sizer.AddGrowableRow(1)
 		marker_sizer.AddGrowableCol(0)
-		main_sizer.Add(self.marker_panel, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 6)
-		trace_sizer.Add(self.trace_label, 0, 0, 0)
+		main_sizer.Add(self.marker_panel, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM, 6)
+		trace_sizer.Add(self.trace_label, 0, wx.ALL, 2)
+		trace_subsizer.Add(self.channel_a_read_radiobox, 0, wx.ALL|wx.EXPAND, 4)
+		trace_subsizer.Add(self.channel_a_write_radiobox, 0, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 4)
+		trace_subsizer.Add(self.channel_b_read_radiobox, 0, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 4)
+		trace_subsizer.Add(self.channel_b_write_radiobox, 0, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 4)
+		trace_subsizer.Add(self.a_mode_label, 0, wx.ALL, 1)
+		trace_subsizer.Add(self.average_rate_label, 0, wx.ALL, 1)
+		trace_subsizer.Add(self.b_mode_label, 0, wx.ALL, 1)
+		trace_subsizer.Add(self.placeholder_panel_3, 1, wx.EXPAND, 0)
+		trace_subsizer.Add(self.a_mode_combo_box, 0, wx.ALL|wx.EXPAND, 1)
+		trace_subsizer.Add(self.average_rate_combo_box, 0, wx.ALL|wx.EXPAND, 1)
+		trace_subsizer.Add(self.b_mode_combo_box, 0, wx.ALL|wx.EXPAND, 1)
+		trace_subsizer.Add(self.placeholder_panel_4, 1, wx.EXPAND, 0)
+		trace_subsizer.Add(self.a_minus_b_mode_label, 0, wx.ALL, 1)
+		trace_subsizer.Add(self.placeholder_panel_6, 1, wx.EXPAND, 0)
+		trace_subsizer.Add(self.reference_line_label, 0, 0, 0)
+		trace_subsizer.Add(self.det_mode_label, 0, 0, 0)
+		trace_subsizer.Add(self.a_minus_b_combo_box, 0, wx.ALL, 1)
+		trace_subsizer.Add(self.a_to_b_button, 0, wx.ALL, 1)
+		trace_subsizer.Add(self.reference_line_combobox, 0, 0, 0)
+		trace_subsizer.Add(self.det_mode_combobox, 0, 0, 0)
+		trace_sizer.Add(trace_subsizer, 1, 0, 0)
 		self.trace_panel.SetSizer(trace_sizer)
 		trace_sizer.AddGrowableRow(1)
 		trace_sizer.AddGrowableCol(0)
-		main_sizer.Add(self.trace_panel, 1, wx.RIGHT|wx.BOTTOM|wx.EXPAND, 6)
+		main_sizer.Add(self.trace_panel, 1, wx.RIGHT|wx.BOTTOM, 6)
 		self.notebook_main.SetSizer(main_sizer)
 		main_sizer.AddGrowableRow(0)
 		main_sizer.AddGrowableRow(1)
@@ -539,14 +609,42 @@ class MainFrame(wx.Frame):
 		self.update_unit_menu()
 		self.update_statusbar()
 
+	def button_handler_a_to_b(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.a_to_b()
+
+	def radiobox_handler_a_read(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_channel_a_read(bool(self.channel_a_read_radiobox.GetSelection()))
+		self.update_trace_settings()
+
+	def radiobox_handler_a_write(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_channel_a_write(self.channel_a_write_radiobox.GetSelection())
+		self.update_trace_settings()
+
+	def radiobox_handler_b_read(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_channel_b_read(bool(self.channel_b_read_radiobox.GetSelection()))
+		self.update_trace_settings()
+
+	def radiobox_handler_b_write(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_channel_b_write(self.channel_b_write_radiobox.GetSelection())
+		self.update_trace_settings()
+
+	def combobox_handler_a_mode(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_channel_a_write_mode(self.a_mode_combo_box.GetValue())
+
+	def combobox_handler_b_mode(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_channel_b_write_mode(self.b_mode_combo_box.GetValue())
+
+	def combobox_handler_average_rate(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_average_rate(self.average_rate_combo_box.GetValue())
+
+	def combobox_handler_a_minus_b_mode(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_a_minus_b_mode(self.a_minus_b_combo_box.GetValue())
+
+	def combobox_handler_det_mode(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_det_mode(self.det_mode_combobox.GetValue())
+
 	def combobox_handler_reference_line(self, event): # wxGlade: MainFrame.<event_handler>
-		value = self.reference_line_combobox.GetValue().upper()
-		if value == "TOP":
-			self.ms2601b.set_reference_line("TOP")
-		elif value == "MIDDLE":
-			self.ms2601b.set_reference_line("MDL")
-		elif value == "BOTTOM":
-			self.ms2601b.set_reference_line("BOT")
+		self.ms2601b.set_reference_line(self.reference_line_combobox.GetValue())
 
 	def update_all_values(self):
 		self.update_frequencies()
@@ -556,6 +654,7 @@ class MainFrame(wx.Frame):
 		self.update_scale_menu()
 		self.update_unit_menu()
 		self.update_unit_combobox()
+		self.update_trace_settings()
 		self.update_antenna_menu()
 		self.update_calibration_menu()
 		self.update_trigger_menu()
@@ -593,6 +692,18 @@ class MainFrame(wx.Frame):
 	
 	def update_unit_combobox(self):
 		self.unit_combo_box.SetSelection(self.ms2601b.UNITS[self.ms2601b.get_unit()])
+
+	def update_trace_settings(self):
+		self.channel_a_read_radiobox.SetSelection(int(self.ms2601b.get_channel_a_read()))
+		self.channel_a_write_radiobox.SetSelection(self.ms2601b.get_channel_a_write())
+		self.a_mode_combo_box.SetStringSelection(self.ms2601b.get_channel_a_write_mode())
+		self.channel_b_read_radiobox.SetSelection(int(self.ms2601b.get_channel_b_read()))
+		self.channel_b_write_radiobox.SetSelection(self.ms2601b.get_channel_b_write())
+		self.b_mode_combo_box.SetStringSelection(self.ms2601b.get_channel_b_write_mode())
+		self.average_rate_combo_box.SetStringSelection(self.ms2601b.get_average_rate())
+		self.a_minus_b_combo_box.SetStringSelection(self.ms2601b.get_a_minus_b_mode())
+		self.det_mode_combobox.SetStringSelection(self.ms2601b.get_det_mode())
+		self.reference_line_combobox.SetStringSelection(self.ms2601b.get_reference_line())
 
 	def update_antenna_menu(self):
 		self.menubar.FindItemById(self.ANTENNA_TO_MENUITEM_ID[self.ms2601b.get_antenna()]).Check(True)

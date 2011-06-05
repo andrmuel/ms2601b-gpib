@@ -47,7 +47,8 @@ class MS2601B:
 	UNITS_INV = dict([(b,a) for (a,b) in UNITS.iteritems()])
 
 	# reference line
-	REF_LINE = {"TOP": 0, "MDL": 1, "BOT" : 2}
+	REF_LINE = {"Top": 0, "Middle": 1, "Bottom" : 2}
+	REF_LINE_INV = dict([(b,a) for (a,b) in REF_LINE.iteritems()])
 
 	# resolution bandwidth
 	RES_BW = {"30 Hz": 0, "100 Hz": 1, "300 Hz": 2, "1 kHz": 3, "3 kHz": 4, "10 kHz": 5, "30 kHz": 6, "100 kHz": 7, "300 kHz": 8, "1 MHz": 9, "200 Hz": 10, "9 kHz": 11, "120 kHz": 12}
@@ -77,6 +78,22 @@ class MS2601B:
 	FREQ_COUNT_RES = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2}
 	FREQ_COUNT_RES_INV = dict([(b,a) for (a,b) in FREQ_COUNT_RES.iteritems()])
 
+	# write modes
+	WRITE_MODES = {"Normal":0, "Max hold":1, "Average":2, "Min hold":3, "Cumulative":4, "Overwrite":5}
+	WRITE_MODES_INV = dict([(b,a) for (a,b) in WRITE_MODES.iteritems()])
+	
+	# average rates
+	AVERAGE_RATES = {"4":0, "8":1, "16":2, "32":3, "128":4}
+	AVERAGE_RATES_INV = dict([(b,a) for (a,b) in AVERAGE_RATES.iteritems()])
+
+	# A - B mode
+	A_MINUS_B_MODES = {"Off": 0, u"A-B → A": 1, u"A-SA → A": 2, u"B-SB → B": 3}
+	A_MINUS_B_MODES_INV = dict([(b,a) for (a,b) in A_MINUS_B_MODES.iteritems()])
+
+	# det modes
+	DET_MODES = {"Peak": 0, "Sample": 1, "Dip": 2}
+	DET_MODES_INV =  dict([(b,a) for (a,b) in DET_MODES.iteritems()])
+
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
 		self.set_all_values_dirty()
@@ -102,6 +119,16 @@ class MS2601B:
 		self.response_data_dirty = True
 		self.freq_count_enabled_dirty = True
 		self.freq_count_resolution_dirty = True
+		self.a_read_dirty = True
+		self.a_write_dirty = True
+		self.a_write_mode_dirty = True
+		self.b_read_dirty = True
+		self.b_write_dirty = True
+		self.b_write_mode_dirty = True
+		self.average_rate_dirty = True
+		self.a_minus_b_mode_dirty = True
+		self.det_mode_dirty = True
+		self.reference_line_dirty = True
 
 	def send(self, command):
 		self.gpib.gpib_send(command)
@@ -167,6 +194,30 @@ class MS2601B:
 		self.freq_count_enabled_dirty = False
 		self.freq_count_resolution = "10 Hz"
 		self.freq_count_resolution_dirty = False
+		self.a_read = True
+		self.a_read_dirty = False
+		self.a_write = 1
+		self.a_write_dirty = False
+		self.a_write_mode = "NORMAL"
+		self.a_write_mode_dirty = False
+		self.b_read = False
+		self.b_read_dirty = False
+		self.b_write = 0
+		self.b_write_dirty = False
+		self.b_write_mode = "NORMAL"
+		self.b_write_mode_dirty = False
+		self.average_rate = "8"
+		self.average_rate_dirty = False
+		self.a_minus_b_mode = "Off"
+		self.a_minus_b_mode_dirty = False
+		self.det_mode = "Peak"
+		self.det_mode_dirty = False
+		self.reference_line = "Middle"
+		self.reference_line_dirty = False
+
+	#
+	# level
+	#
 
 	def get_reference_level(self):
 		if self.ref_level_dirty:
@@ -181,6 +232,10 @@ class MS2601B:
 	def peak_to_reference_level(self):
 		self.send("PRL")
 		self.ref_level_dirty = True
+
+	# 
+	# frequency
+	#
 
 	def get_center_frequency(self):
 		if self.center_freq_dirty:
@@ -241,6 +296,10 @@ class MS2601B:
 		self.start_freq_dirty = True
 		self.set_int_value("SPF", span)
 
+	#
+	# resolution bandwidth
+	#
+
 	def get_resolution_bandwidth_auto(self):
 		if self.res_bw_auto_dirty:
 			self.res_bw_auto = bool(self.get_int_value("ARB"))
@@ -268,6 +327,10 @@ class MS2601B:
 		self.set_int_value("RBW", self.RES_BW[rbw])
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
+	
+	#
+	# attenuation
+	#
 
 	def get_attenuation_auto(self):
 		if self.atten_auto_dirty:
@@ -292,6 +355,10 @@ class MS2601B:
 		self.atten_dirty = False
 		self.atten_auto = False
 		self.set_int_value("ATT", self.ATTEN[atten])
+	
+	#
+	# sweep time
+	#
 
 	def get_sweep_time_auto(self):
 		if self.sweep_time_auto_dirty:
@@ -316,6 +383,10 @@ class MS2601B:
 		self.sweep_time_dirty = False
 		self.sweep_time_auto = False
 		self.set_int_value("SWT", self.SWEEP_TIME[rbw])
+
+	# 
+	# video bandwidth
+	#
 
 	def get_video_bandwidth_auto(self):
 		if self.video_bw_auto_dirty:
@@ -344,10 +415,18 @@ class MS2601B:
 		self.set_int_value("VBW", self.VIDEO_BW[rbw])
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
+	
+	#
+	# uncal
+	#
 
 	def get_uncal_status(self):
 		self.uncal = bool(self.get_int_value("UCL"))
 		return self.uncal
+
+	# 
+	# scale
+	#
 
 	def get_scale(self):
 		if self.scale_dirty:
@@ -360,6 +439,10 @@ class MS2601B:
 		self.scale_dirty = False
 		self.set_int_value("SCL", self.SCALE[scale])
 
+	#
+	# unit
+	#
+	
 	def get_unit(self):
 		if self.unit_dirty:
 			self.unit = self.UNITS_INV[self.get_int_value("UNT")]
@@ -370,9 +453,25 @@ class MS2601B:
 		self.unit = unit
 		self.unit_dirty = False
 		self.set_int_value("UNT", self.UNITS[unit])
+	
+	#
+	# reference line
+	#
+
+	def get_reference_line(self):
+		if self.reference_line_dirty:
+			self.reference_line = self.REF_LINE_INV[self.get_int_value("RLN")]
+			self.reference_line_dirty = False
+		return self.reference_line
 
 	def set_reference_line(self, position):
+		self.reference_line = position
+		self.reference_line_dirty = False
 		self.set_int_value("RLN", self.REF_LINE[position])
+
+	#
+	# antenna
+	#
 	
 	def get_antenna(self):
 		if self.antenna_dirty:
@@ -385,9 +484,10 @@ class MS2601B:
 		self.antenna_dirty = False
 		self.set_int_value("ANT", self.ANTENNAS[antenna])
 
-	def sweep(self):
-		self.send("SWP")
-	
+	#
+	# trigger / sweep
+	#
+
 	def get_trigger(self):
 		if self.trigger_dirty:
 			self.trigger = self.TRIGGER_TYPES_INV[self.get_int_value("TRG")]
@@ -399,6 +499,13 @@ class MS2601B:
 		self.trigger_dirty = False
 		self.set_int_value("TRG", self.TRIGGER_TYPES[trigger])
 
+	def sweep(self):
+		self.send("SWP")
+
+	# 
+	# calibration
+	#
+	
 	def start_calibration(self, mode=0):
 		"""
 		Start calibration process.
@@ -429,6 +536,10 @@ class MS2601B:
 		self.response_data = enabled
 		self.response_data_dirty = False
 		self.set_int_value("CRE", int(enabled))
+	
+	# 
+	# frequency counter
+	#
 
 	def get_frequency_count_enabled(self):
 		if self.freq_count_enabled_dirty:
@@ -451,7 +562,130 @@ class MS2601B:
 		self.set_int_value("CRE", self.FREQ_COUNT_RES[resolution])
 		self.freq_count_resolution = resolution
 		self.freq_count_enabled_dirty = False
+
+
+	# 
+	# trace
+	#
+
+	# channel a
+
+	def get_channel_a_read(self):
+		if self.a_read_dirty:
+			self.a_read = bool(self.get_int_value("ARD"))
+			self.a_read_dirty = False
+		return self.a_read
+
+	def set_channel_a_read(self, enabled):
+		self.a_read = enabled
+		self.a_read_dirty = False
+		self.a_write_dirty = True
+		self.set_int_value("ARD", int(enabled))
+	
+	def get_channel_a_write(self):
+		if self.a_write_dirty:
+			self.a_write = self.get_int_value("AWR")
+			self.a_write_dirty = False
+		return self.a_write
 			
+	def set_channel_a_write(self, mode):
+		self.a_write = mode
+		self.a_write_dirty = False
+		self.a_read_dirty = True
+		self.set_int_value("AWR", mode)
+
+	def get_channel_a_write_mode(self):
+		if self.a_write_mode_dirty:
+			self.a_write_mode = self.WRITE_MODES_INV[self.get_int_value("AMD")]
+			self.a_write_mode_dirty = False
+		return self.a_write_mode
+
+	def set_channel_a_write_mode(self, mode):
+		self.a_write_mode = mode
+		self.a_write_mode_dirty = False
+		self.set_int_value("AMD", self.WRITE_MODES[mode])
+
+	# channel b
+
+	def get_channel_b_read(self):
+		if self.b_read_dirty:
+			self.b_read = bool(self.get_int_value("BRD"))
+			self.b_read_dirty = False
+		return self.b_read
+
+	def set_channel_b_read(self, enabled):
+		self.b_read = enabled
+		self.b_read_dirty = False
+		self.b_write_dirty = True
+		self.set_int_value("BRD", int(enabled))
+	
+	def get_channel_b_write(self):
+		if self.b_write_dirty:
+			self.b_write = self.get_int_value("BWR")
+			self.b_write_dirty = False
+		return self.b_write
+			
+	def set_channel_b_write(self, mode):
+		self.b_write = mode
+		self.b_write_dirty = False
+		self.b_read_dirty = True
+		self.set_int_value("BWR", mode)
+
+	def get_channel_b_write_mode(self):
+		if self.b_write_mode_dirty:
+			self.b_write_mode = self.WRITE_MODES_INV[self.get_int_value("BMD")]
+			self.b_write_mode_dirty = False
+		return self.b_write_mode
+
+	def set_channel_b_write_mode(self, mode):
+		self.b_write_mode = mode
+		self.b_write_mode_dirty = False
+		self.set_int_value("BMD", self.WRITE_MODES[mode])
+	
+	# average rate
+
+	def get_average_rate(self):
+		if self.average_rate_dirty:
+			self.average_rate = self.AVERAGE_RATES_INV[self.get_int_value("AVR")]
+			self.average_rate_dirty = False
+		return self.average_rate
+
+	def set_average_rate(self, rate):
+		self.average_rate = rate
+		self.average_rate_dirty = False
+		self.set_int_value("AVR", self.AVERAGE_RATES[rate])
+
+	# A to B
+
+	def a_to_b(self):
+		self.send("ATB")
+
+	# A - B mode
+	
+	def get_a_minus_b_mode(self):
+		if self.a_minus_b_mode_dirty:
+			self.a_minus_b_mode = self.A_MINUS_B_MODES_INV[self.get_int_value("AMB")]
+			self.a_minus_b_mode_dirty = False
+		return self.a_minus_b_mode
+
+	def set_a_minus_b_mode(self, mode):
+		self.a_minus_b_mode = mode
+		self.a_minus_b_mode_dirty = False
+		self.set_int_value("AMB", self.A_MINUS_B_MODES[mode])
+	
+	# det mode
+
+	def get_det_mode(self):
+		if self.det_mode_dirty:
+			self.det_mode = self.DET_MODES_INV[self.get_int_value("DET")]
+			self.det_mode_dirty = False
+		return self.det_mode
+
+	def set_det_mode(self, mode):
+		self.det_mode = mode
+		self.det_mode_dirty = False
+		self.set_int_value("DET", self.DET_MODES[mode])
+
 
 if __name__ == "__main__":
 	ms2601b = MS2601B()

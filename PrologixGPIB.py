@@ -101,12 +101,16 @@ class PrologixGPIB:
 		self.read()
 		self.send_prologix_command("read 10")
 		time.sleep(0.1)
+		i = 0
 		while True:
 			line = self.read().strip()
 			if len(line) > 0:
 				return line
-			else:
+			elif i<10:
 				time.sleep(0.1)
+				i += 1
+			else:
+				return ""
 
 	def command(self, command, read_answer=False):
 		self.gpib_send(command)
