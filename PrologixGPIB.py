@@ -112,6 +112,28 @@ class PrologixGPIB:
 			else:
 				return ""
 
+	def gpib_readlines(self, count): # FIXME broken ..
+		self.read()
+		data = []
+		time.sleep(0.1)
+		self.send_prologix_command("read")
+		time.sleep(0.1)
+		i = 0
+		while i<count:
+			try:
+				data.append(self.device.readline())
+				time.sleep(0.01)
+				i += 1
+			except:
+				time.sleep(0.1)
+				pass
+		print "receiving loose data ..."
+		for i in xrange(10):
+			time.sleep(1)
+			x = self.read()
+			print "got %d bytes ..." % len(x)
+		return data
+
 	def command(self, command, read_answer=False):
 		self.gpib_send(command)
 		if read_answer:

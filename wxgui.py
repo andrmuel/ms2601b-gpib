@@ -5,6 +5,9 @@
 import MS2601B
 from MenuIDs import *
 import wx
+from matplotlib import use
+use('WXAgg')
+import pylab
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -30,6 +33,12 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_UPDATE_ALL, "Update all values", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_LOCAL, "Local control", "", wx.ITEM_NORMAL)
 		self.menubar.Append(wxglade_tmp_menu, "Device")
+		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_SPECTRUM_DUMP_A, "Dump Channel A", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_SPECTRUM_DUMP_B, "Dump Channel B", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_SPECTRUM_PLOT_A, "Plot Channel A", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_SPECTRUM_PLOT_B, "Plot Channel B", "", wx.ITEM_NORMAL)
+		self.menubar.Append(wxglade_tmp_menu, "Spectrum Data")
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_ENABLED, "Enable frequency count", "", wx.ITEM_CHECK)
 		wxglade_tmp_menu.AppendSeparator()
@@ -148,6 +157,10 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_initial, id=MENU_INITIAL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_update_all, id=MENU_UPDATE_ALL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_local, id=MENU_LOCAL)
+		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_DUMP_A)
+		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_DUMP_B)
+		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_PLOT_A)
+		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_PLOT_B)
 		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_enable, id=MENU_FREQ_COUNT_ENABLED)
 		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_1HZ)
 		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_10HZ)
@@ -742,6 +755,27 @@ class MainFrame(wx.Frame):
 		self.statusbar.SetStatusText(self.ms2601b.get_scale(),1)
 		self.statusbar.SetStatusText(self.ms2601b.get_unit(),2)
 		self.statusbar.SetStatusText(self.ms2601b.get_trigger(),3)
+
+	def menu_handler_spectrum_data(self, event): # wxGlade: MainFrame.<event_handler>
+		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_PLOT_A:
+			channel = "A"
+		else:
+			channel = "B"
+		data = self.ms2601b.get_spectrum_data(channel)
+		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_DUMP_B:
+			print data
+		else:
+			f0 = self.ms2601b.get_start_frequency()
+			f1 = self.ms2601b.get_stop_frequency()
+			df = f1-f0
+			f_range = [f0+float(i)/float(len(data)-1)*df for i in xrange(len(data))]
+			pylab.title("SA data")
+			pylab.xlabel("Frequency [Hz]")
+			pylab.ylabel("Magnitude [%s]" % self.ms2601b.get_unit())
+			pylab.plot(f_range, data, '-', label="Channel "+channel)
+			pylab.legend()
+			pylab.grid(True)
+			pylab.show()
 
 # end of class MainFrame
 

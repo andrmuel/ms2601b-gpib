@@ -24,6 +24,9 @@ class MS2601B:
 	MS2601B remote control via GPIB.
 	"""
 
+	# number of points in spectrum data
+	SPECTRUM_DATA_POINTS = 501
+
 	# reference level
 	REF_LEVEL_MIN = -100 # TODO only works with dBm
 	REF_LEVEL_MAX = 20
@@ -99,6 +102,7 @@ class MS2601B:
 		self.set_all_values_dirty()
 
 	def set_all_values_dirty(self):
+		self.binary_dirty = True
 		self.center_freq_dirty = True
 		self.start_freq_dirty = True
 		self.span_dirty = True
@@ -156,6 +160,8 @@ class MS2601B:
 	def set_initial(self):
 		self.send("INI")
 		time.sleep(0.5)
+		self.binary = False
+		self.binary_dirty = False
 		self.center_freq = self.MAX_FREQ/2
 		self.center_freq_dirty = False
 		self.start_freq = self.MIN_FREQ
@@ -214,6 +220,35 @@ class MS2601B:
 		self.det_mode_dirty = False
 		self.reference_line = "Middle"
 		self.reference_line_dirty = False
+
+	def get_spectrum_data(self, channel, start_address=0, count=SPECTRUM_DATA_POINTS, binary=False):
+		channel = channel.upper()
+		assert start_address >= 0 and start_address <= 500
+		assert start_address+count-1 <= 500
+		assert channel == "A" or channel == "B"
+		if channel == "A":
+			self.set_channel_a_write(0)
+		else:
+			self.set_channel_b_write(0)
+		self.set_binary(binary)
+		self.send("XM%c? %d,%d" % (channel, start_address, count))
+		if binary==False:
+			values = [float(value.strip().replace(" ","")) for value in self.gpib.gpib_readlines(count)]
+		else:
+			values = []
+		return values
+
+	def get_binary(self):
+		if self.binary_dirty:
+			self.binary = bool(self.get_int_value("BIN"))
+			self.binary_dirty = False
+		return self.binary
+
+	def set_binary(self, binary):
+		self.binary = binary
+		self.binary_dirty = False
+		self.set_int_value("BIN", int(binary))
+
 
 	#
 	# level
