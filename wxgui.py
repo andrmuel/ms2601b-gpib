@@ -94,7 +94,7 @@ class MainFrame(wx.Frame):
 		self.span_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Span (kHz)")
 		self.placeholder_panel_2 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.span_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
-		self.zero_span_button = wx.Button(self.frequency_ref_level_panel, -1, "Zero span")
+		self.zero_span_button = wx.ToggleButton(self.frequency_ref_level_panel, -1, "Zero span")
 		self.start_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Start frequency (kHz)")
 		self.stop_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Stop frequency (kHz)")
 		self.start_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
@@ -184,7 +184,7 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_center_freq, self.center_freq_spin_ctrl)
 		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_to_center_freq, self.peak_to_cf_button)
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_span, self.span_spin_ctrl)
-		self.Bind(wx.EVT_BUTTON, self.button_handler_zero_span, self.zero_span_button)
+		self.Bind(wx.EVT_TOGGLEBUTTON, self.button_handler_zero_span, self.zero_span_button)
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_start_freq, self.start_freq_spin_ctrl)
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_stop_freq, self.stop_freq_spin_ctrl)
 		self.Bind(wx.EVT_RADIOBOX, self.res_bw_auto_handler, self.res_bw_auto)
@@ -601,7 +601,10 @@ class MainFrame(wx.Frame):
 		self.update_frequencies()
 
 	def button_handler_zero_span(self, event): # wxGlade: MainFrame.<event_handler>
-		self.ms2601b.set_span(0)
+		if self.zero_span_button.GetValue() == True:
+			self.ms2601b.set_span(0)
+		else:
+			self.ms2601b.set_span(self.span_spin_ctrl.GetValue()*1000)
 		self.update_frequencies()
 
 	def combobox_handler_unit_selection(self, event): # wxGlade: MainFrame.<event_handler>
@@ -664,7 +667,13 @@ class MainFrame(wx.Frame):
 		self.center_freq_spin_ctrl.SetValue(self.ms2601b.get_center_frequency()/1000)
 		self.start_freq_spin_ctrl.SetValue(self.ms2601b.get_start_frequency()/1000)
 		self.stop_freq_spin_ctrl.SetValue(self.ms2601b.get_stop_frequency()/1000)
-		self.span_spin_ctrl.SetValue(self.ms2601b.get_span()/1000)
+		span = self.ms2601b.get_span()
+		self.zero_span_button.SetValue(span==0)
+		if span == 0:
+			self.span_spin_ctrl.SetBackgroundColour(wx.Colour(0xC0, 0xC0, 0xC0))
+		else:
+			self.span_spin_ctrl.SetBackgroundColour(wx.Colour(0xff, 0xff, 0xff))
+			self.span_spin_ctrl.SetValue(span/1000)
 
 	def update_reference_level(self):
 		self.ref_level_spin_ctrl.SetValue(self.ms2601b.get_reference_level())
