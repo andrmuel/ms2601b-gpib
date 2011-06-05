@@ -79,6 +79,11 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_ANTENNA_LOOP, "Loop", "", wx.ITEM_RADIO)
 		wxglade_tmp_menu.Append(MENU_ANTENNA_USER, "User", "", wx.ITEM_RADIO)
 		self.menubar.Append(wxglade_tmp_menu, "Antenna")
+		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_LIST_0, "List Reg. 0", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_LIST_1, "List Reg. 1", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu.Append(MENU_LIST_2, "List Reg. 2", "", wx.ITEM_NORMAL)
+		self.menubar.Append(wxglade_tmp_menu, "List")
 		self.SetMenuBar(self.menubar)
 		# Menu Bar end
 		self.statusbar = self.CreateStatusBar(4, 0)
@@ -177,6 +182,9 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOGPER_2)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_LOOP)
 		self.Bind(wx.EVT_MENU, self.menu_handler_antenna, id=MENU_ANTENNA_USER)
+		self.Bind(wx.EVT_MENU, self.menu_handler_list, id=MENU_LIST_0)
+		self.Bind(wx.EVT_MENU, self.menu_handler_list, id=MENU_LIST_1)
+		self.Bind(wx.EVT_MENU, self.menu_handler_list, id=MENU_LIST_2)
 		self.Bind(wx.EVT_SPINCTRL, self.spinctrl_handler_ref_level, self.ref_level_spin_ctrl)
 		self.Bind(wx.EVT_TEXT_ENTER, self.combobox_handler_unit_selection, self.unit_combo_box)
 		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_unit_selection, self.unit_combo_box)
@@ -233,6 +241,9 @@ class MainFrame(wx.Frame):
 		# set antenna menu IDs
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
 		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
+		# set antenna menu IDs
+		self.LIST_TO_MENUITEM_ID = {0: MENU_LIST_0, 1: MENU_LIST_1, 2: MENU_LIST_2}
+		self.MENUITEM_ID_TO_LIST = dict([(b,a) for (a,b) in self.LIST_TO_MENUITEM_ID.iteritems()])
 		# set up trigger menu IDs
 		self.TRIGGER_TYPE_TO_MENUITEM_ID = {"FREE": MENU_TRIGGER_FREE, "VIDEO": MENU_TRIGGER_VIDEO, "LINE": MENU_TRIGGER_LINE, "EXT": MENU_TRIGGER_EXT, "SINGLE": MENU_TRIGGER_SINGLE, "START": MENU_TRIGGER_START}
 		self.MENUITEM_ID_TO_TRIGGER_TYPE = dict([(b,a) for (a,b) in self.TRIGGER_TYPE_TO_MENUITEM_ID.iteritems()])
@@ -520,6 +531,9 @@ class MainFrame(wx.Frame):
 
 	def menu_handler_antenna(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_antenna(self.MENUITEM_ID_TO_ANTENNA[event.GetId()])
+
+	def menu_handler_list(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_list(self.MENUITEM_ID_TO_LIST[event.GetId()])
 
 	def res_bw_auto_handler(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_resolution_bandwidth_auto(event.GetString()=="Auto")

@@ -686,6 +686,14 @@ class MS2601B:
 		self.det_mode_dirty = False
 		self.set_int_value("DET", self.DET_MODES[mode])
 
+	#
+	# list
+	#
+	
+	def set_list(self, reg):
+		assert reg >= 0 and reg <= 2
+		self.set_int_value("LST", reg)
+
 
 if __name__ == "__main__":
 	ms2601b = MS2601B()
