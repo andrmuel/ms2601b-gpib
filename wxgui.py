@@ -135,6 +135,26 @@ class MainFrame(wx.Frame):
 		self.video_bw_select = wx.ComboBox(self.main_settings_panel, -1, choices=["-OFF-", "100 kHz", "10 kHz", "1 kHz", "100 Hz", "10 Hz", "1 Hz"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.uncal_label = wx.StaticText(self.main_settings_panel, -1, "Uncalibrated")
 		self.marker_label = wx.StaticText(self.marker_panel, -1, "Marker")
+		self.marker_type_label = wx.StaticText(self.marker_panel, -1, "Marker type:")
+		self.marker_width_label = wx.StaticText(self.marker_panel, -1, "Marker width:")
+		self.marker_type_combobox = wx.ComboBox(self.marker_panel, -1, choices=["Normal", "Delta", "Off"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.marker_width_combobox = wx.ComboBox(self.marker_panel, -1, choices=["Narrow", "Spot", "Wide", "Dip. Narrow", "Dip. Wide"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.zone_sweep_button = wx.ToggleButton(self.marker_panel, -1, "Zone sweep")
+		self.placeholder_panel_9 = wx.Panel(self.marker_panel, -1)
+		self.marker_to_cf_button = wx.Button(self.marker_panel, -1, u"Marker → center frequency")
+		self.marker_to_ref_button = wx.Button(self.marker_panel, -1, u"Marker → reference level")
+		self.marker_search_label = wx.StaticText(self.marker_panel, -1, "Marker search:")
+		self.marker_search_peak_button = wx.Button(self.marker_panel, -1, "Peak")
+		self.marker_search_minimum_button = wx.Button(self.marker_panel, -1, "Minimum")
+		self.marker_search_next_peak_button = wx.Button(self.marker_panel, -1, "Next peak")
+		self.marker_search_peak_label = wx.StaticText(self.marker_panel, -1, "Peak search:")
+		self.marker_search_minimum_label = wx.StaticText(self.marker_panel, -1, "Minimum:")
+		self.peak_search_left_button = wx.Button(self.marker_panel, -1, u"←")
+		self.peak_search_center_button = wx.Button(self.marker_panel, -1, ".")
+		self.peak_search_right_button = wx.Button(self.marker_panel, -1, u"→")
+		self.minimum_search_left_button = wx.Button(self.marker_panel, -1, u"←")
+		self.minimum_search_center_button = wx.Button(self.marker_panel, -1, ".")
+		self.minimum_search_right_button = wx.Button(self.marker_panel, -1, u"→")
 		self.trace_label = wx.StaticText(self.trace_panel, -1, "Trace")
 		self.channel_a_read_radiobox = wx.RadioBox(self.trace_panel, -1, "A read:", choices=["Off", "On"], majorDimension=2, style=wx.RA_SPECIFY_ROWS)
 		self.channel_a_write_radiobox = wx.RadioBox(self.trace_panel, -1, "A write:", choices=["Off", "On", "SA"], majorDimension=3, style=wx.RA_SPECIFY_ROWS)
@@ -228,6 +248,20 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_COMBOBOX, self.sweep_time_select_handler, self.sweep_time_select)
 		self.Bind(wx.EVT_RADIOBOX, self.video_bw_auto_handler, self.video_bw_auto)
 		self.Bind(wx.EVT_COMBOBOX, self.video_bw_select_handler, self.video_bw_select)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_marker_type, self.marker_type_combobox)
+		self.Bind(wx.EVT_COMBOBOX, self.combobox_handler_marker_width, self.marker_width_combobox)
+		self.Bind(wx.EVT_TOGGLEBUTTON, self.button_handler_zone_sweep, self.zone_sweep_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_marker_to_cf, self.marker_to_cf_button)
+		self.Bind(wx.EVT_BUTTON, self.button_hander_marker_to_ref, self.marker_to_ref_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_marker_search_peak, self.marker_search_peak_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_marker_search_minimum, self.marker_search_minimum_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_marker_search_next_peak, self.marker_search_next_peak_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_search_left, self.peak_search_left_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_search_center, self.peak_search_center_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_peak_search_right, self.peak_search_right_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_minimum_search_left, self.minimum_search_left_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_minimum_search_center, self.minimum_search_center_button)
+		self.Bind(wx.EVT_BUTTON, self.button_handler_minimum_search_right, self.minimum_search_right_button)
 		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_a_read, self.channel_a_read_radiobox)
 		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_a_write, self.channel_a_write_radiobox)
 		self.Bind(wx.EVT_RADIOBOX, self.radiobox_handler_b_read, self.channel_b_read_radiobox)
@@ -308,6 +342,10 @@ class MainFrame(wx.Frame):
 		self.uncal_label.SetForegroundColour(wx.Colour(255, 0, 0))
 		self.uncal_label.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.marker_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+		self.marker_type_combobox.SetMinSize((100, 27))
+		self.marker_type_combobox.SetSelection(0)
+		self.marker_width_combobox.SetMinSize((100, 27))
+		self.marker_width_combobox.SetSelection(0)
 		self.trace_label.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
 		self.channel_a_read_radiobox.SetSelection(0)
 		self.channel_a_write_radiobox.SetSelection(0)
@@ -336,6 +374,9 @@ class MainFrame(wx.Frame):
 		trace_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		trace_subsizer = wx.FlexGridSizer(5, 4, 0, 0)
 		marker_sizer = wx.FlexGridSizer(2, 1, 0, 0)
+		grid_sizer_1 = wx.FlexGridSizer(8, 2, 0, 0)
+		minimum_search_grid_sizer = wx.GridSizer(1, 3, 0, 0)
+		peak_search_grid_sizer = wx.FlexGridSizer(1, 3, 0, 0)
 		main_settings_sizer = wx.FlexGridSizer(5, 1, 0, 0)
 		video_bw_sizer = wx.FlexGridSizer(2, 1, 0, 0)
 		video_bw_subsizer = wx.FlexGridSizer(1, 2, 0, 0)
@@ -440,6 +481,34 @@ class MainFrame(wx.Frame):
 		main_settings_sizer.AddGrowableCol(0)
 		main_sizer.Add(self.main_settings_panel, 1, wx.RIGHT|wx.TOP|wx.BOTTOM, 6)
 		marker_sizer.Add(self.marker_label, 0, wx.ALL, 2)
+		grid_sizer_1.Add(self.marker_type_label, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_width_label, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_type_combobox, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_width_combobox, 0, 0, 0)
+		grid_sizer_1.Add(self.zone_sweep_button, 0, 0, 0)
+		grid_sizer_1.Add(self.placeholder_panel_9, 1, wx.EXPAND, 0)
+		grid_sizer_1.Add(self.marker_to_cf_button, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_to_ref_button, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_search_label, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_search_peak_button, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_search_minimum_button, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_search_next_peak_button, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_search_peak_label, 0, 0, 0)
+		grid_sizer_1.Add(self.marker_search_minimum_label, 0, 0, 0)
+		peak_search_grid_sizer.Add(self.peak_search_left_button, 0, 0, 0)
+		peak_search_grid_sizer.Add(self.peak_search_center_button, 0, 0, 0)
+		peak_search_grid_sizer.Add(self.peak_search_right_button, 0, 0, 0)
+		peak_search_grid_sizer.AddGrowableCol(0)
+		peak_search_grid_sizer.AddGrowableCol(1)
+		peak_search_grid_sizer.AddGrowableCol(2)
+		grid_sizer_1.Add(peak_search_grid_sizer, 1, wx.EXPAND, 0)
+		minimum_search_grid_sizer.Add(self.minimum_search_left_button, 0, 0, 0)
+		minimum_search_grid_sizer.Add(self.minimum_search_center_button, 0, 0, 0)
+		minimum_search_grid_sizer.Add(self.minimum_search_right_button, 0, 0, 0)
+		grid_sizer_1.Add(minimum_search_grid_sizer, 1, wx.EXPAND, 0)
+		grid_sizer_1.AddGrowableCol(0)
+		grid_sizer_1.AddGrowableCol(1)
+		marker_sizer.Add(grid_sizer_1, 1, wx.EXPAND, 0)
 		self.marker_panel.SetSizer(marker_sizer)
 		marker_sizer.AddGrowableRow(1)
 		marker_sizer.AddGrowableCol(0)
@@ -683,6 +752,25 @@ class MainFrame(wx.Frame):
 		self.update_unit_menu()
 		self.update_statusbar()
 
+	# marker events
+
+	def combobox_handler_marker_type(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_marker(self.ms2601b.MARKER_INV[self.marker_type_combobox.GetSelection()])
+
+	def combobox_handler_marker_width(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_marker_width(self.ms2601b.MARKER_WIDTH_INV[self.marker_width_combobox.GetSelection()])
+
+	def button_handler_zone_sweep(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_zone_sweep(self.zone_sweep_button.GetValue())
+
+	def button_handler_marker_to_cf(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_to_cf()
+
+	def button_hander_marker_to_ref(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_to_ref()
+
+	# trace events
+
 	def button_handler_a_to_b(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.a_to_b()
 
@@ -728,6 +816,7 @@ class MainFrame(wx.Frame):
 		self.update_scale_menu()
 		self.update_unit_menu()
 		self.update_unit_combobox()
+		self.update_marker_settings()
 		self.update_trace_settings()
 		self.update_antenna_menu()
 		self.update_calibration_menu()
@@ -772,6 +861,11 @@ class MainFrame(wx.Frame):
 	
 	def update_unit_combobox(self):
 		self.unit_combo_box.SetSelection(self.ms2601b.UNITS[self.ms2601b.get_unit()])
+	
+	def update_marker_settings(self):
+		self.zone_sweep_button.SetValue(self.ms2601b.get_zone_sweep())
+		self.marker_type_combobox.SetStringSelection(self.ms2601b.get_marker())
+		self.marker_width_combobox.SetStringSelection(self.ms2601b.get_marker_width())
 
 	def update_trace_settings(self):
 		self.channel_a_read_radiobox.SetSelection(int(self.ms2601b.get_channel_a_read()))
@@ -802,6 +896,33 @@ class MainFrame(wx.Frame):
 		self.statusbar.SetStatusText(self.ms2601b.get_scale(),1)
 		self.statusbar.SetStatusText(self.ms2601b.get_unit(),2)
 		self.statusbar.SetStatusText(self.ms2601b.get_trigger(),3)
+
+	def button_handler_marker_search_peak(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Peak")
+
+	def button_handler_marker_search_minimum(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Minimum")
+
+	def button_handler_marker_search_next_peak(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Next peak")
+
+	def button_handler_peak_search_left(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Left peak")
+
+	def button_handler_peak_search_center(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Center peak")
+
+	def button_handler_peak_search_right(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Right peak")
+
+	def button_handler_minimum_search_left(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Left minimum")
+
+	def button_handler_minimum_search_center(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Center minimum")
+
+	def button_handler_minimum_search_right(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.marker_search("Right minimum")
 
 # end of class MainFrame
 

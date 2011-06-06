@@ -41,9 +41,20 @@ class MS2601B:
 	MIN_FREQ = 0
 	MAX_FREQ = 2200000000
 
+	# marker
+	MARKER = {"Normal": 0, "Delta": 1, "Off": 2}
+	MARKER_INV = dict([(b,a) for (a,b) in MARKER.iteritems()])
+
+	# marker width
+	MARKER_WIDTH = {"Narrow": 0, "Spot": 1, "Wide": 2, "Dip. Narrow": 3, "Dip. Wide": 4}
+	MARKER_WIDTH_INV = dict([(b,a) for (a,b) in MARKER_WIDTH.iteritems()])
+
+	# marker search
+	MARKER_SEARCH = {"Peak": 0, "Next peak": 1, "Minimum": 2, "Left peak": 3, "Center peak": 4, "Right peak": 5, "Left minimum": 6, "Center minimum": 7, "Right minimum": 8}
+
 	# calibration modes
 	CAL_MODES = {"ALL": 0, "FREQ": 1, "LEVEL (1)": 2, "LEVEL (2)": 3}
-	CAL_MODES_INV =  dict([(b,a) for (a,b) in CAL_MODES.iteritems()])
+	CAL_MODES_INV = dict([(b,a) for (a,b) in CAL_MODES.iteritems()])
 
 	# scales
 	SCALE = { "1 dB": 0, "2 dB": 1, "5 dB": 2, "10 dB": 3, "Linear": 4}
@@ -110,6 +121,7 @@ class MS2601B:
 		self.center_freq_dirty = True
 		self.start_freq_dirty = True
 		self.span_dirty = True
+		self.zone_sweep_dirty = True
 		self.ref_level_dirty = True
 		self.res_bw_dirty = True
 		self.res_bw_auto_dirty = True
@@ -137,6 +149,7 @@ class MS2601B:
 		self.a_minus_b_mode_dirty = True
 		self.det_mode_dirty = True
 		self.reference_line_dirty = True
+		self.quasi_peak_dirty = True
 
 	def send(self, command):
 		self.gpib.gpib_send(command)
@@ -176,6 +189,8 @@ class MS2601B:
 		self.start_freq_dirty = False
 		self.span = self.SPAN_FREQ_MAX
 		self.span_dirty = False
+		self.zone_sweep = False
+		self.zone_sweep_dirty = False
 		self.ref_level = 0
 		self.ref_level_dirty = False
 		self.res_bw_auto = True
@@ -228,6 +243,8 @@ class MS2601B:
 		self.det_mode_dirty = False
 		self.reference_line = "Middle"
 		self.reference_line_dirty = False
+		self.quasi_peak = False
+		self.quasi_peak_dirty = False
 
 	def get_spectrum_data(self, channel, start_address=0, count=SPECTRUM_DATA_POINTS, binary=False):
 		channel = channel.upper()
@@ -339,6 +356,44 @@ class MS2601B:
 		self.center_freq_dirty = True
 		self.start_freq_dirty = True
 		self.set_int_value("SPF", span)
+
+	#
+	# marker
+	#
+
+	def get_marker(self):
+		return self.MARKER_INV[self.get_int_value("MKR")]
+
+	def set_marker(self, marker):
+		self.set_int_value("MKR", self.MARKER[marker])	
+	
+	def marker_to_cf(self):
+		self.set_int_value("MKR", 3)
+
+	def marker_to_ref(self):
+		self.set_int_value("MKR", 4)
+	
+	def get_marker_width(self):
+		return self.MARKER_WIDTH_INV[self.get_int_value("MKW")]
+
+	def set_marker_width(self, width):
+		self.set_int_value("MKW", self.MARKER_WIDTH[width])
+
+	def marker_search(self, search_mode):
+		self.set_int_value("MKS", self.MARKER_SEARCH[search_mode])
+	
+	# zone sweep
+	
+	def get_zone_sweep(self):
+		if self.zone_sweep_dirty:
+			self.zone_sweep = bool(self.get_int_value("PSW"))
+			self.zone_sweep_dirty = False
+		return self.zone_sweep
+
+	def set_zone_sweep(self, enabled):
+		self.zone_sweep = enabled
+		self.zone_sweep_dirty = False
+		self.set_int_value("PSW", int(enabled))
 
 	#
 	# resolution bandwidth
