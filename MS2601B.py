@@ -731,6 +731,21 @@ class MS2601B:
 		self.set_int_value("DET", self.DET_MODES[mode])
 
 	#
+	# quasi-peak detection
+	#
+	
+	def get_quasi_peak_enabled(self):
+		if self.quasi_peak_dirty:
+			self.quasi_peak = bool(self.get_int_value("QPD"))
+			self.quasi_peak_dirty = False
+		return self.quasi_peak
+	
+	def set_quasi_peak_enabled(self, enabled):
+		self.quasi_peak = enabled
+		self.quasi_peak_dirty = True # setting may fail
+		self.set_int_value("QPD", int(enabled))
+
+	#
 	# list
 	#
 	

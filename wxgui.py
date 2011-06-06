@@ -45,6 +45,9 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_SPECTRUM_PLOT_B, "Plot Channel B", "", wx.ITEM_NORMAL)
 		self.menubar.Append(wxglade_tmp_menu, "Spectrum Data")
 		wxglade_tmp_menu = wx.Menu()
+		wxglade_tmp_menu.Append(MENU_QP_ENABLE, "Enable quasi-peak detection", "", wx.ITEM_CHECK)
+		self.menubar.Append(wxglade_tmp_menu, "QP")
+		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_ENABLED, "Enable frequency count", "", wx.ITEM_CHECK)
 		wxglade_tmp_menu.AppendSeparator()
 		wxglade_tmp_menu.Append(MENU_FREQ_COUNT_RES_1HZ, "1 Hz Resolution", "", wx.ITEM_RADIO)
@@ -169,6 +172,7 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_DUMP_B)
 		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_PLOT_A)
 		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_PLOT_B)
+		self.Bind(wx.EVT_MENU, self.menu_handler_qp_enable, id=MENU_QP_ENABLE)
 		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_enable, id=MENU_FREQ_COUNT_ENABLED)
 		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_1HZ)
 		self.Bind(wx.EVT_MENU, self.menu_handler_freq_count_resolution, id=MENU_FREQ_COUNT_RES_10HZ)
@@ -508,6 +512,34 @@ class MainFrame(wx.Frame):
 		self.statusbar.SetStatusText("Returning control to local ...")
 		self.ms2601b.gpib.set_loc()
 
+	def menu_handler_terminator(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_terminator(self.MENUITEM_ID_TO_TERMINATOR[event.GetId()])
+
+	def menu_handler_spectrum_data(self, event): # wxGlade: MainFrame.<event_handler>
+		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_PLOT_A:
+			channel = "A"
+		else:
+			channel = "B"
+		data = self.ms2601b.get_spectrum_data(channel)
+		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_DUMP_B:
+			print data
+		else:
+			f0 = self.ms2601b.get_start_frequency()
+			f1 = self.ms2601b.get_stop_frequency()
+			df = f1-f0
+			f_range = [f0+float(i)/float(len(data)-1)*df for i in xrange(len(data))]
+			pylab.title("SA data")
+			pylab.xlabel("Frequency [Hz]")
+			pylab.ylabel("Magnitude [%s]" % self.ms2601b.get_unit())
+			pylab.plot(f_range, data, '-', label="Channel "+channel)
+			pylab.legend()
+			pylab.grid(True)
+			pylab.show()
+
+	def menu_handler_qp_enable(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_quasi_peak_enabled(event.IsChecked())
+		self.update_qp_menu()
+
 	def menu_handler_freq_count_enable(self, event): # wxGlade: MainFrame.<event_handler>
 		self.ms2601b.set_frequency_count_enabled(event.IsChecked())
 
@@ -753,6 +785,9 @@ class MainFrame(wx.Frame):
 		self.det_mode_combobox.SetStringSelection(self.ms2601b.get_det_mode())
 		self.reference_line_combobox.SetStringSelection(self.ms2601b.get_reference_line())
 
+	def update_qp_menu(self):
+		self.menubar.FindItemById(MENU_QP_ENABLE).Check(self.ms2601b.get_quasi_peak_enabled())
+
 	def update_antenna_menu(self):
 		self.menubar.FindItemById(self.ANTENNA_TO_MENUITEM_ID[self.ms2601b.get_antenna()]).Check(True)
 
@@ -767,30 +802,6 @@ class MainFrame(wx.Frame):
 		self.statusbar.SetStatusText(self.ms2601b.get_scale(),1)
 		self.statusbar.SetStatusText(self.ms2601b.get_unit(),2)
 		self.statusbar.SetStatusText(self.ms2601b.get_trigger(),3)
-
-	def menu_handler_spectrum_data(self, event): # wxGlade: MainFrame.<event_handler>
-		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_PLOT_A:
-			channel = "A"
-		else:
-			channel = "B"
-		data = self.ms2601b.get_spectrum_data(channel)
-		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_DUMP_B:
-			print data
-		else:
-			f0 = self.ms2601b.get_start_frequency()
-			f1 = self.ms2601b.get_stop_frequency()
-			df = f1-f0
-			f_range = [f0+float(i)/float(len(data)-1)*df for i in xrange(len(data))]
-			pylab.title("SA data")
-			pylab.xlabel("Frequency [Hz]")
-			pylab.ylabel("Magnitude [%s]" % self.ms2601b.get_unit())
-			pylab.plot(f_range, data, '-', label="Channel "+channel)
-			pylab.legend()
-			pylab.grid(True)
-			pylab.show()
-
-	def menu_handler_terminator(self, event): # wxGlade: MainFrame.<event_handler>
-		self.ms2601b.set_terminator(self.MENUITEM_ID_TO_TERMINATOR[event.GetId()])
 
 # end of class MainFrame
 
