@@ -24,6 +24,10 @@ class MS2601B:
 	MS2601B remote control via GPIB.
 	"""
 
+	# line terminator
+	TERMINATORS = {"LF": 0, "CR": 1, "CR/LF": 2}
+	TERMINATORS_INV = dict([(b,a) for (a,b) in TERMINATORS.iteritems()])
+	
 	# number of points in spectrum data
 	SPECTRUM_DATA_POINTS = 501
 
@@ -156,6 +160,10 @@ class MS2601B:
 
 	def set_float_value(self, command, value):
 		self.command("%s %1.1f" % (command, value))
+	
+	def set_terminator(self, terminator):
+		assert terminator in self.TERMINATORS.keys()
+		self.set_int_value("TRM", self.TERMINATORS[terminator])
 	
 	def set_initial(self):
 		self.send("INI")

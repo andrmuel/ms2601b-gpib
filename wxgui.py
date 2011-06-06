@@ -32,6 +32,11 @@ class MainFrame(wx.Frame):
 		wxglade_tmp_menu.Append(MENU_INITIAL, "Initial settings", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_UPDATE_ALL, "Update all values", "", wx.ITEM_NORMAL)
 		wxglade_tmp_menu.Append(MENU_LOCAL, "Local control", "", wx.ITEM_NORMAL)
+		wxglade_tmp_menu_sub = wx.Menu()
+		wxglade_tmp_menu_sub.Append(MENU_TERMINATOR_LF, "LF", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu_sub.Append(MENU_TERMINATOR_CR, "CR", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu_sub.Append(MENU_TERMINATOR_CR_LF, "CR/LF", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.AppendMenu(wx.NewId(), "Terminator", wxglade_tmp_menu_sub, "")
 		self.menubar.Append(wxglade_tmp_menu, "Device")
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_SPECTRUM_DUMP_A, "Dump Channel A", "", wx.ITEM_NORMAL)
@@ -157,6 +162,9 @@ class MainFrame(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.menu_handler_initial, id=MENU_INITIAL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_update_all, id=MENU_UPDATE_ALL)
 		self.Bind(wx.EVT_MENU, self.menu_handler_local, id=MENU_LOCAL)
+		self.Bind(wx.EVT_MENU, self.menu_handler_terminator, id=MENU_TERMINATOR_LF)
+		self.Bind(wx.EVT_MENU, self.menu_handler_terminator, id=MENU_TERMINATOR_CR)
+		self.Bind(wx.EVT_MENU, self.menu_handler_terminator, id=MENU_TERMINATOR_CR_LF)
 		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_DUMP_A)
 		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_DUMP_B)
 		self.Bind(wx.EVT_MENU, self.menu_handler_spectrum_data, id=MENU_SPECTRUM_PLOT_A)
@@ -237,9 +245,11 @@ class MainFrame(wx.Frame):
 		self.start_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
 		self.stop_freq_spin_ctrl.SetRange(self.ms2601b.MIN_FREQ, self.ms2601b.MAX_FREQ/1000)
 		self.span_spin_ctrl.SetRange(self.ms2601b.SPAN_FREQ_MIN, self.ms2601b.SPAN_FREQ_MAX/1000)
-		self.update_frequencies()
 		# set up reference level range
 		self.ref_level_spin_ctrl.SetRange(self.ms2601b.REF_LEVEL_MIN, self.ms2601b.REF_LEVEL_MAX)
+		# terminator menu IDs and default
+		self.MENUITEM_ID_TO_TERMINATOR = {MENU_TERMINATOR_LF: "LF", MENU_TERMINATOR_CR: "CR", MENU_TERMINATOR_CR_LF: "CR/LF"}
+		self.menubar.FindItemById(MENU_TERMINATOR_CR_LF).Check(True)
 		# set up frequency counter resolution menu IDs
 		self.FREQ_COUNT_RES_TO_MENUITEM_ID = {"1 Hz": MENU_FREQ_COUNT_RES_1HZ, "10 Hz": MENU_FREQ_COUNT_RES_10HZ, "100 Hz": MENU_FREQ_COUNT_RES_100HZ}
 		self.MENUITEM_ID_TO_FREQ_COUNT_RES = dict([(b,a) for (a,b) in self.FREQ_COUNT_RES_TO_MENUITEM_ID.iteritems()])
@@ -776,6 +786,9 @@ class MainFrame(wx.Frame):
 			pylab.legend()
 			pylab.grid(True)
 			pylab.show()
+
+	def menu_handler_terminator(self, event): # wxGlade: MainFrame.<event_handler>
+		self.ms2601b.set_terminator(self.MENUITEM_ID_TO_TERMINATOR[event.GetId()])
 
 # end of class MainFrame
 

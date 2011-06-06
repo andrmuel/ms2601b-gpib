@@ -44,7 +44,7 @@ class PrologixGPIB:
 		self.device.close()
 
 	def write(self, string):
-		print "OUT: "+string,
+		print ">>> "+string,
 		self.device.write(string)
 
 	def read(self):
@@ -105,6 +105,7 @@ class PrologixGPIB:
 		while True:
 			line = self.read().strip()
 			if len(line) > 0:
+				print "<<< "+line
 				return line
 			elif i<10:
 				time.sleep(0.1)
