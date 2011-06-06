@@ -594,6 +594,8 @@ class MainFrame(wx.Frame):
 		value = self.ref_level_spin_ctrl.GetValue()
 		try:
 			self.ms2601b.set_reference_level(float(value))
+			if float(value) % 10 in [0,1]:
+				self.atten_select.SetStringSelection(self.ms2601b.get_attenuation())
 		except:
 			pass
 

@@ -270,6 +270,7 @@ class MS2601B:
 
 	def set_reference_level(self, ref_level):
 		self.ref_level = ref_level
+		self.atten_dirty = True
 		self.set_float_value("RLV", ref_level)
 
 	def peak_to_reference_level(self):
