@@ -14,11 +14,11 @@ import time
 
 import PrologixGPIB
 import code
-from IPython.Shell import IPShellEmbed
+import IPython
 
 GPIB_ADDR=1
 
-	
+
 class MS2601B:
 	"""
 	MS2601B remote control via GPIB.
@@ -27,7 +27,7 @@ class MS2601B:
 	# line terminator
 	TERMINATORS = {"LF": 0, "CR": 1, "CR/LF": 2}
 	TERMINATORS_INV = dict([(b,a) for (a,b) in TERMINATORS.iteritems()])
-	
+
 	# number of points in spectrum data
 	SPECTRUM_DATA_POINTS = 501
 
@@ -99,7 +99,7 @@ class MS2601B:
 	# write modes
 	WRITE_MODES = {"Normal":0, "Max hold":1, "Average":2, "Min hold":3, "Cumulative":4, "Overwrite":5}
 	WRITE_MODES_INV = dict([(b,a) for (a,b) in WRITE_MODES.iteritems()])
-	
+
 	# average rates
 	AVERAGE_RATES = {"4":0, "8":1, "16":2, "32":3, "128":4}
 	AVERAGE_RATES_INV = dict([(b,a) for (a,b) in AVERAGE_RATES.iteritems()])
@@ -173,11 +173,11 @@ class MS2601B:
 
 	def set_float_value(self, command, value):
 		self.command("%s %1.1f" % (command, value))
-	
+
 	def set_terminator(self, terminator):
 		assert terminator in self.TERMINATORS.keys()
 		self.set_int_value("TRM", self.TERMINATORS[terminator])
-	
+
 	def set_initial(self):
 		self.send("INI")
 		time.sleep(0.5)
@@ -294,7 +294,7 @@ class MS2601B:
 		self.send("PRL")
 		self.ref_level_dirty = True
 
-	# 
+	#
 	# frequency
 	#
 
@@ -303,7 +303,7 @@ class MS2601B:
 			self.center_freq = self.get_int_value("CNF")
 			self.center_freq_dirty = False
 		return self.center_freq
-	
+
 	def set_center_frequency(self, center_freq):
 		assert center_freq >= self.MIN_FREQ and center_freq <= self.MAX_FREQ
 		self.center_freq = center_freq
@@ -365,14 +365,14 @@ class MS2601B:
 		return self.MARKER_INV[self.get_int_value("MKR")]
 
 	def set_marker(self, marker):
-		self.set_int_value("MKR", self.MARKER[marker])	
-	
+		self.set_int_value("MKR", self.MARKER[marker])
+
 	def marker_to_cf(self):
 		self.set_int_value("MKR", 3)
 
 	def marker_to_ref(self):
 		self.set_int_value("MKR", 4)
-	
+
 	def get_marker_width(self):
 		return self.MARKER_WIDTH_INV[self.get_int_value("MKW")]
 
@@ -381,9 +381,9 @@ class MS2601B:
 
 	def marker_search(self, search_mode):
 		self.set_int_value("MKS", self.MARKER_SEARCH[search_mode])
-	
+
 	# zone sweep
-	
+
 	def get_zone_sweep(self):
 		if self.zone_sweep_dirty:
 			self.zone_sweep = bool(self.get_int_value("PSW"))
@@ -426,7 +426,7 @@ class MS2601B:
 		self.set_int_value("RBW", self.RES_BW[rbw])
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
-	
+
 	#
 	# attenuation
 	#
@@ -454,7 +454,7 @@ class MS2601B:
 		self.atten_dirty = False
 		self.atten_auto = False
 		self.set_int_value("ATT", self.ATTEN[atten])
-	
+
 	#
 	# sweep time
 	#
@@ -483,7 +483,7 @@ class MS2601B:
 		self.sweep_time_auto = False
 		self.set_int_value("SWT", self.SWEEP_TIME[rbw])
 
-	# 
+	#
 	# video bandwidth
 	#
 
@@ -514,7 +514,7 @@ class MS2601B:
 		self.set_int_value("VBW", self.VIDEO_BW[rbw])
 		if self.get_sweep_time_auto():
 			self.sweep_time_dirty = True
-	
+
 	#
 	# uncal
 	#
@@ -523,7 +523,7 @@ class MS2601B:
 		self.uncal = bool(self.get_int_value("UCL"))
 		return self.uncal
 
-	# 
+	#
 	# scale
 	#
 
@@ -532,7 +532,7 @@ class MS2601B:
 			self.scale = self.SCALE_INV[self.get_int_value("SCL")]
 			self.scale_dirty = False
 		return self.scale
-		
+
 	def set_scale(self, scale):
 		self.scale = scale
 		self.scale_dirty = False
@@ -541,7 +541,7 @@ class MS2601B:
 	#
 	# unit
 	#
-	
+
 	def get_unit(self):
 		if self.unit_dirty:
 			self.unit = self.UNITS_INV[self.get_int_value("UNT")]
@@ -552,7 +552,7 @@ class MS2601B:
 		self.unit = unit
 		self.unit_dirty = False
 		self.set_int_value("UNT", self.UNITS[unit])
-	
+
 	#
 	# reference line
 	#
@@ -571,7 +571,7 @@ class MS2601B:
 	#
 	# antenna
 	#
-	
+
 	def get_antenna(self):
 		if self.antenna_dirty:
 			self.antenna = self.ANTENNAS_INV[self.get_int_value("ANT")]
@@ -601,14 +601,14 @@ class MS2601B:
 	def sweep(self):
 		self.send("SWP")
 
-	# 
+	#
 	# calibration
 	#
-	
+
 	def start_calibration(self, mode=0):
 		"""
 		Start calibration process.
-		
+
 		@param mode: 0 -> ALL, 1 -> FREQ, 2 -> CAL LEVEL (1), 3 -> CAL LEVEL (2)
 		"""
 		if mode in range(4):
@@ -635,8 +635,8 @@ class MS2601B:
 		self.response_data = enabled
 		self.response_data_dirty = False
 		self.set_int_value("CRE", int(enabled))
-	
-	# 
+
+	#
 	# frequency counter
 	#
 
@@ -663,7 +663,7 @@ class MS2601B:
 		self.freq_count_enabled_dirty = False
 
 
-	# 
+	#
 	# trace
 	#
 
@@ -680,13 +680,13 @@ class MS2601B:
 		self.a_read_dirty = False
 		self.a_write_dirty = True
 		self.set_int_value("ARD", int(enabled))
-	
+
 	def get_channel_a_write(self):
 		if self.a_write_dirty:
 			self.a_write = self.get_int_value("AWR")
 			self.a_write_dirty = False
 		return self.a_write
-			
+
 	def set_channel_a_write(self, mode):
 		self.a_write = mode
 		self.a_write_dirty = False
@@ -717,13 +717,13 @@ class MS2601B:
 		self.b_read_dirty = False
 		self.b_write_dirty = True
 		self.set_int_value("BRD", int(enabled))
-	
+
 	def get_channel_b_write(self):
 		if self.b_write_dirty:
 			self.b_write = self.get_int_value("BWR")
 			self.b_write_dirty = False
 		return self.b_write
-			
+
 	def set_channel_b_write(self, mode):
 		self.b_write = mode
 		self.b_write_dirty = False
@@ -740,7 +740,7 @@ class MS2601B:
 		self.b_write_mode = mode
 		self.b_write_mode_dirty = False
 		self.set_int_value("BMD", self.WRITE_MODES[mode])
-	
+
 	# average rate
 
 	def get_average_rate(self):
@@ -760,7 +760,7 @@ class MS2601B:
 		self.send("ATB")
 
 	# A - B mode
-	
+
 	def get_a_minus_b_mode(self):
 		if self.a_minus_b_mode_dirty:
 			self.a_minus_b_mode = self.A_MINUS_B_MODES_INV[self.get_int_value("AMB")]
@@ -771,7 +771,7 @@ class MS2601B:
 		self.a_minus_b_mode = mode
 		self.a_minus_b_mode_dirty = False
 		self.set_int_value("AMB", self.A_MINUS_B_MODES[mode])
-	
+
 	# det mode
 
 	def get_det_mode(self):
@@ -788,13 +788,13 @@ class MS2601B:
 	#
 	# quasi-peak detection
 	#
-	
+
 	def get_quasi_peak_enabled(self):
 		if self.quasi_peak_dirty:
 			self.quasi_peak = bool(self.get_int_value("QPD"))
 			self.quasi_peak_dirty = False
 		return self.quasi_peak
-	
+
 	def set_quasi_peak_enabled(self, enabled):
 		self.quasi_peak = enabled
 		self.quasi_peak_dirty = True # setting may fail
@@ -803,7 +803,7 @@ class MS2601B:
 	#
 	# list
 	#
-	
+
 	def set_list(self, reg):
 		assert reg >= 0 and reg <= 2
 		self.set_int_value("LST", reg)
@@ -813,5 +813,4 @@ if __name__ == "__main__":
 	ms2601b = MS2601B()
 	# interpreter = code.InteractiveConsole(globals())
 	# interpreter.interact("Starting Python console  ...")
-	ipshell = IPShellEmbed("", banner="Starting IPython ...", exit_msg="Leaving IPython ...")
-	ipshell()
+	IPython.embed()
