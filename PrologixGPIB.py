@@ -21,7 +21,7 @@ class PrologixGPIB:
 	"""
 	Class to control the Prologix GPIB USB interface.
 	"""
-	
+
 	def __init__(self, addr=1):
 		# open device
 		self.device = open(DEVICE, "a+")
@@ -39,7 +39,7 @@ class PrologixGPIB:
 		self.set_prologix_auto_mode(False)
 		self.set_gpib_addr(addr)
 		self.send_prologix_command("ifc")
-	
+
 	def close(self):
 		self.device.close()
 
@@ -73,7 +73,7 @@ class PrologixGPIB:
 	def set_gpib_mode(self, controller):
 		"""
 		Set GPIB mode.
-		
+
 		@param controller: False -> device mode, True -> controller mode
 		"""
 		self.send_prologix_command("mode %d" % int(controller))
@@ -89,13 +89,13 @@ class PrologixGPIB:
 		Enable front panel operation of the currently addressed instrument.
 		"""
 		self.send_prologix_command("loc")
-	
+
 	def gpib_send(self, command):
 		self.write("%s\n" % command)
 
 	def gpib_send_clr(self):
 		self.send_prologix_command("clr")
-	
+
 
 	def gpib_readline(self):
 		self.read()
