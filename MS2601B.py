@@ -26,7 +26,7 @@ class MS2601B:
 
 	# line terminator
 	TERMINATORS = {"LF": 0, "CR": 1, "CR/LF": 2}
-	TERMINATORS_INV = dict([(b,a) for (a,b) in TERMINATORS.iteritems()])
+	TERMINATORS_INV = dict([(b,a) for (a,b) in TERMINATORS.items()])
 
 	# number of points in spectrum data
 	SPECTRUM_DATA_POINTS = 501
@@ -43,74 +43,74 @@ class MS2601B:
 
 	# marker
 	MARKER = {"Normal": 0, "Delta": 1, "Off": 2}
-	MARKER_INV = dict([(b,a) for (a,b) in MARKER.iteritems()])
+	MARKER_INV = dict([(b,a) for (a,b) in MARKER.items()])
 
 	# marker width
 	MARKER_WIDTH = {"Narrow": 0, "Spot": 1, "Wide": 2, "Dip. Narrow": 3, "Dip. Wide": 4}
-	MARKER_WIDTH_INV = dict([(b,a) for (a,b) in MARKER_WIDTH.iteritems()])
+	MARKER_WIDTH_INV = dict([(b,a) for (a,b) in MARKER_WIDTH.items()])
 
 	# marker search
 	MARKER_SEARCH = {"Peak": 0, "Next peak": 1, "Minimum": 2, "Left peak": 3, "Center peak": 4, "Right peak": 5, "Left minimum": 6, "Center minimum": 7, "Right minimum": 8}
 
 	# calibration modes
 	CAL_MODES = {"ALL": 0, "FREQ": 1, "LEVEL (1)": 2, "LEVEL (2)": 3}
-	CAL_MODES_INV = dict([(b,a) for (a,b) in CAL_MODES.iteritems()])
+	CAL_MODES_INV = dict([(b,a) for (a,b) in CAL_MODES.items()])
 
 	# scales
 	SCALE = { "1 dB": 0, "2 dB": 1, "5 dB": 2, "10 dB": 3, "Linear": 4}
-	SCALE_INV = dict([(b,a) for (a,b) in SCALE.iteritems()])
+	SCALE_INV = dict([(b,a) for (a,b) in SCALE.items()])
 
 	# units
-	UNITS = {u'dBm': 0, u'dBµV': 1, u'dBV': 2, u'V': 3, u'dBµV (emf)': 4, u'dBµV/m': 5}
-	UNITS_INV = dict([(b,a) for (a,b) in UNITS.iteritems()])
+	UNITS = {'dBm': 0, 'dBµV': 1, 'dBV': 2, 'V': 3, 'dBµV (emf)': 4, 'dBµV/m': 5}
+	UNITS_INV = dict([(b,a) for (a,b) in UNITS.items()])
 
 	# reference line
 	REF_LINE = {"Top": 0, "Middle": 1, "Bottom" : 2}
-	REF_LINE_INV = dict([(b,a) for (a,b) in REF_LINE.iteritems()])
+	REF_LINE_INV = dict([(b,a) for (a,b) in REF_LINE.items()])
 
 	# resolution bandwidth
 	RES_BW = {"30 Hz": 0, "100 Hz": 1, "300 Hz": 2, "1 kHz": 3, "3 kHz": 4, "10 kHz": 5, "30 kHz": 6, "100 kHz": 7, "300 kHz": 8, "1 MHz": 9, "200 Hz": 10, "9 kHz": 11, "120 kHz": 12}
-	RES_BW_INV = dict([(b,a) for (a,b) in RES_BW.iteritems()])
+	RES_BW_INV = dict([(b,a) for (a,b) in RES_BW.items()])
 
 	# attenuation
 	ATTEN = {"0 dB": 0, "10 dB": 1, "20 dB": 2, "30 dB": 3, "40 dB": 4, "50 dB": 5}
-	ATTEN_INV = dict([(b,a) for (a,b) in ATTEN.iteritems()])
+	ATTEN_INV = dict([(b,a) for (a,b) in ATTEN.items()])
 
 	# sweep time
 	SWEEP_TIME = {"1000 s": 1e6, "700 s": 7e5, "500 s": 5e5, "300 s": 3e5, "200 s": 2e5, "150 s": 1.5e5, "100 s": 1e5, "70 s": 7e4, "50 s": 5e4, "30 s": 3e4, "20 s": 2e4, "15 s": 1.5e4, "10 s": 1e4, "7 s": 7000, "5 s": 5000, "3 s": 3000, "2 s": 2000, "1.5 s": 1500, "1 s": 1000, "700 ms": 700, "500 ms": 500, "300 ms": 300, "200 ms": 200, "150 ms": 150, "100 ms": 100, "70 ms": 70, "50 ms": 50}
-	SWEEP_TIME_INV = dict([(b,a) for (a,b) in SWEEP_TIME.iteritems()])
+	SWEEP_TIME_INV = dict([(b,a) for (a,b) in SWEEP_TIME.items()])
 
 	# video bandwidth
 	VIDEO_BW = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2, "1 kHz": 3, "10 kHz": 4, "100 kHz": 5, "OFF": 6}
-	VIDEO_BW_INV = dict([(b,a) for (a,b) in VIDEO_BW.iteritems()])
+	VIDEO_BW_INV = dict([(b,a) for (a,b) in VIDEO_BW.items()])
 
 	# antennas
 	ANTENNAS = {"DIPOLE": 0, "LOG-PERIODIC (1)": 1, "LOG-PERIODIC (2)": 2, "LOOP": 3, "USER": 4, "OFF": 5}
-	ANTENNAS_INV = dict([(b,a) for (a,b) in ANTENNAS.iteritems()])
+	ANTENNAS_INV = dict([(b,a) for (a,b) in ANTENNAS.items()])
 
 	# trigger types
 	TRIGGER_TYPES = {"FREE": 0, "VIDEO": 1, "LINE": 2, "EXT": 3, "SINGLE": 4, "START": 5}
-	TRIGGER_TYPES_INV = dict([(b,a) for (a,b) in TRIGGER_TYPES.iteritems()])
+	TRIGGER_TYPES_INV = dict([(b,a) for (a,b) in TRIGGER_TYPES.items()])
 
 	# frequency counter resolutions
 	FREQ_COUNT_RES = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2}
-	FREQ_COUNT_RES_INV = dict([(b,a) for (a,b) in FREQ_COUNT_RES.iteritems()])
+	FREQ_COUNT_RES_INV = dict([(b,a) for (a,b) in FREQ_COUNT_RES.items()])
 
 	# write modes
 	WRITE_MODES = {"Normal":0, "Max hold":1, "Average":2, "Min hold":3, "Cumulative":4, "Overwrite":5}
-	WRITE_MODES_INV = dict([(b,a) for (a,b) in WRITE_MODES.iteritems()])
+	WRITE_MODES_INV = dict([(b,a) for (a,b) in WRITE_MODES.items()])
 
 	# average rates
 	AVERAGE_RATES = {"4":0, "8":1, "16":2, "32":3, "128":4}
-	AVERAGE_RATES_INV = dict([(b,a) for (a,b) in AVERAGE_RATES.iteritems()])
+	AVERAGE_RATES_INV = dict([(b,a) for (a,b) in AVERAGE_RATES.items()])
 
 	# A - B mode
-	A_MINUS_B_MODES = {"Off": 0, u"A-B → A": 1, u"A-SA → A": 2, u"B-SB → B": 3}
-	A_MINUS_B_MODES_INV = dict([(b,a) for (a,b) in A_MINUS_B_MODES.iteritems()])
+	A_MINUS_B_MODES = {"Off": 0, "A-B → A": 1, "A-SA → A": 2, "B-SB → B": 3}
+	A_MINUS_B_MODES_INV = dict([(b,a) for (a,b) in A_MINUS_B_MODES.items()])
 
 	# det modes
 	DET_MODES = {"Peak": 0, "Sample": 1, "Dip": 2}
-	DET_MODES_INV =  dict([(b,a) for (a,b) in DET_MODES.iteritems()])
+	DET_MODES_INV =  dict([(b,a) for (a,b) in DET_MODES.items()])
 
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
@@ -175,7 +175,7 @@ class MS2601B:
 		self.command("%s %1.1f" % (command, value))
 
 	def set_terminator(self, terminator):
-		assert terminator in self.TERMINATORS.keys()
+		assert terminator in list(self.TERMINATORS.keys())
 		self.set_int_value("TRM", self.TERMINATORS[terminator])
 
 	def set_initial(self):

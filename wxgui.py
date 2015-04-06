@@ -63,11 +63,11 @@ class MainFrame(wx.Frame):
 		self.menubar.Append(wxglade_tmp_menu, "Scale")
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_UNIT_DBM, "dBm", "", wx.ITEM_RADIO)
-		wxglade_tmp_menu.Append(MENU_UNIT_DBUV, u"dBµV", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBUV, "dBµV", "", wx.ITEM_RADIO)
 		wxglade_tmp_menu.Append(MENU_UNIT_DBV, "dBV", "", wx.ITEM_RADIO)
 		wxglade_tmp_menu.Append(MENU_UNIT_V, "V", "", wx.ITEM_RADIO)
-		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_EMF, u"dBµV (emf)", "", wx.ITEM_RADIO)
-		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_M, u"dBµV/m", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_EMF, "dBµV (emf)", "", wx.ITEM_RADIO)
+		wxglade_tmp_menu.Append(MENU_UNIT_DBUV_M, "dBµV/m", "", wx.ITEM_RADIO)
 		self.menubar.Append(wxglade_tmp_menu, "Unit")
 		wxglade_tmp_menu = wx.Menu()
 		wxglade_tmp_menu.Append(MENU_TRIGGER_FREE, "Free", "", wx.ITEM_RADIO)
@@ -107,12 +107,12 @@ class MainFrame(wx.Frame):
 		self.ref_level_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Reference level")
 		self.ref_level_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
 		self.unit_combo_box = wx.ComboBox(self.frequency_ref_level_panel, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
-		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → reference level")
+		self.peak_to_ref_level_button = wx.Button(self.frequency_ref_level_panel, -1, "Peak → reference level")
 		self.frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Frequency")
 		self.center_frequency_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Center frequency (kHz)")
 		self.placeholder_panel_1 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.center_freq_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
-		self.peak_to_cf_button = wx.Button(self.frequency_ref_level_panel, -1, u"Peak → center frequency")
+		self.peak_to_cf_button = wx.Button(self.frequency_ref_level_panel, -1, "Peak → center frequency")
 		self.span_label = wx.StaticText(self.frequency_ref_level_panel, -1, "Span (kHz)")
 		self.placeholder_panel_2 = wx.Panel(self.frequency_ref_level_panel, -1)
 		self.span_spin_ctrl = wx.SpinCtrl(self.frequency_ref_level_panel, -1, "", min=0, max=100)
@@ -141,20 +141,20 @@ class MainFrame(wx.Frame):
 		self.marker_width_combobox = wx.ComboBox(self.marker_panel, -1, choices=["Narrow", "Spot", "Wide", "Dip. Narrow", "Dip. Wide"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.zone_sweep_button = wx.ToggleButton(self.marker_panel, -1, "Zone sweep")
 		self.placeholder_panel_9 = wx.Panel(self.marker_panel, -1)
-		self.marker_to_cf_button = wx.Button(self.marker_panel, -1, u"Marker → center frequency")
-		self.marker_to_ref_button = wx.Button(self.marker_panel, -1, u"Marker → reference level")
+		self.marker_to_cf_button = wx.Button(self.marker_panel, -1, "Marker → center frequency")
+		self.marker_to_ref_button = wx.Button(self.marker_panel, -1, "Marker → reference level")
 		self.marker_search_label = wx.StaticText(self.marker_panel, -1, "Marker search:")
 		self.marker_search_peak_button = wx.Button(self.marker_panel, -1, "Peak")
 		self.marker_search_minimum_button = wx.Button(self.marker_panel, -1, "Minimum")
 		self.marker_search_next_peak_button = wx.Button(self.marker_panel, -1, "Next peak")
 		self.marker_search_peak_label = wx.StaticText(self.marker_panel, -1, "Peak search:")
 		self.marker_search_minimum_label = wx.StaticText(self.marker_panel, -1, "Minimum:")
-		self.peak_search_left_button = wx.Button(self.marker_panel, -1, u"←")
+		self.peak_search_left_button = wx.Button(self.marker_panel, -1, "←")
 		self.peak_search_center_button = wx.Button(self.marker_panel, -1, ".")
-		self.peak_search_right_button = wx.Button(self.marker_panel, -1, u"→")
-		self.minimum_search_left_button = wx.Button(self.marker_panel, -1, u"←")
+		self.peak_search_right_button = wx.Button(self.marker_panel, -1, "→")
+		self.minimum_search_left_button = wx.Button(self.marker_panel, -1, "←")
 		self.minimum_search_center_button = wx.Button(self.marker_panel, -1, ".")
-		self.minimum_search_right_button = wx.Button(self.marker_panel, -1, u"→")
+		self.minimum_search_right_button = wx.Button(self.marker_panel, -1, "→")
 		self.trace_label = wx.StaticText(self.trace_panel, -1, "Trace")
 		self.channel_a_read_radiobox = wx.RadioBox(self.trace_panel, -1, "A read:", choices=["Off", "On"], majorDimension=2, style=wx.RA_SPECIFY_ROWS)
 		self.channel_a_write_radiobox = wx.RadioBox(self.trace_panel, -1, "A write:", choices=["Off", "On", "SA"], majorDimension=3, style=wx.RA_SPECIFY_ROWS)
@@ -172,8 +172,8 @@ class MainFrame(wx.Frame):
 		self.placeholder_panel_6 = wx.Panel(self.trace_panel, -1)
 		self.reference_line_label = wx.StaticText(self.trace_panel, -1, "Ref. line:")
 		self.det_mode_label = wx.StaticText(self.trace_panel, -1, "Det. mode:")
-		self.a_minus_b_combo_box = wx.ComboBox(self.trace_panel, -1, choices=["Off", u"A-B → A", u"A-SA → A", u"B-SB → B"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
-		self.a_to_b_button = wx.Button(self.trace_panel, -1, u"A → B")
+		self.a_minus_b_combo_box = wx.ComboBox(self.trace_panel, -1, choices=["Off", "A-B → A", "A-SA → A", "B-SB → B"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.a_to_b_button = wx.Button(self.trace_panel, -1, "A → B")
 		self.reference_line_combobox = wx.ComboBox(self.trace_panel, -1, choices=["Top", "Middle", "Bottom"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.det_mode_combobox = wx.ComboBox(self.trace_panel, -1, choices=["Peak", "Sample", "Dip"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
 		self.console_output_text_ctrl = wx.TextCtrl(self.notebook_console, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
@@ -290,24 +290,24 @@ class MainFrame(wx.Frame):
 		self.menubar.FindItemById(MENU_TERMINATOR_CR_LF).Check(True)
 		# set up frequency counter resolution menu IDs
 		self.FREQ_COUNT_RES_TO_MENUITEM_ID = {"1 Hz": MENU_FREQ_COUNT_RES_1HZ, "10 Hz": MENU_FREQ_COUNT_RES_10HZ, "100 Hz": MENU_FREQ_COUNT_RES_100HZ}
-		self.MENUITEM_ID_TO_FREQ_COUNT_RES = dict([(b,a) for (a,b) in self.FREQ_COUNT_RES_TO_MENUITEM_ID.iteritems()])
+		self.MENUITEM_ID_TO_FREQ_COUNT_RES = dict([(b,a) for (a,b) in self.FREQ_COUNT_RES_TO_MENUITEM_ID.items()])
 		# set up scale menu IDs
 		self.SCALE_TO_MENUITEM_ID = {"1 dB": MENU_SCALE_1DB, "2 dB": MENU_SCALE_2DB, "5 dB": MENU_SCALE_5DB, "10 dB": MENU_SCALE_10DB, "Linear": MENU_SCALE_LIN }
-		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.iteritems()])
+		self.MENUITEM_ID_TO_SCALE = dict([(b,a) for (a,b) in self.SCALE_TO_MENUITEM_ID.items()])
 		# set unit menu IDs
-		self.UNIT_TO_MENUITEM_ID = {u"dBm": MENU_UNIT_DBM, u"dBµV": MENU_UNIT_DBUV, u"dBV": MENU_UNIT_DBV, u"V": MENU_UNIT_V, u"dBµV (emf)": MENU_UNIT_DBUV_EMF, u"dBµV/m": MENU_UNIT_DBUV_M}
-		self.MENUITEM_ID_TO_UNIT = dict([(b,a) for (a,b) in self.UNIT_TO_MENUITEM_ID.iteritems()])
+		self.UNIT_TO_MENUITEM_ID = {"dBm": MENU_UNIT_DBM, "dBµV": MENU_UNIT_DBUV, "dBV": MENU_UNIT_DBV, "V": MENU_UNIT_V, "dBµV (emf)": MENU_UNIT_DBUV_EMF, "dBµV/m": MENU_UNIT_DBUV_M}
+		self.MENUITEM_ID_TO_UNIT = dict([(b,a) for (a,b) in self.UNIT_TO_MENUITEM_ID.items()])
 		# set up units combobox
 		self.unit_combo_box.AppendItems([i[1] for i in sorted(self.ms2601b.UNITS_INV.items())])
 		# set antenna menu IDs
 		self.ANTENNA_TO_MENUITEM_ID = {"DIPOLE": MENU_ANTENNA_DIPOLE, "LOG-PERIODIC (1)": MENU_ANTENNA_LOGPER_1, "LOG-PERIODIC (2)": MENU_ANTENNA_LOGPER_2, "LOOP": MENU_ANTENNA_LOOP, "USER": MENU_ANTENNA_USER, "OFF": MENU_ANTENNA_OFF}
-		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.iteritems()])
+		self.MENUITEM_ID_TO_ANTENNA = dict([(b,a) for (a,b) in self.ANTENNA_TO_MENUITEM_ID.items()])
 		# set antenna menu IDs
 		self.LIST_TO_MENUITEM_ID = {0: MENU_LIST_0, 1: MENU_LIST_1, 2: MENU_LIST_2}
-		self.MENUITEM_ID_TO_LIST = dict([(b,a) for (a,b) in self.LIST_TO_MENUITEM_ID.iteritems()])
+		self.MENUITEM_ID_TO_LIST = dict([(b,a) for (a,b) in self.LIST_TO_MENUITEM_ID.items()])
 		# set up trigger menu IDs
 		self.TRIGGER_TYPE_TO_MENUITEM_ID = {"FREE": MENU_TRIGGER_FREE, "VIDEO": MENU_TRIGGER_VIDEO, "LINE": MENU_TRIGGER_LINE, "EXT": MENU_TRIGGER_EXT, "SINGLE": MENU_TRIGGER_SINGLE, "START": MENU_TRIGGER_START}
-		self.MENUITEM_ID_TO_TRIGGER_TYPE = dict([(b,a) for (a,b) in self.TRIGGER_TYPE_TO_MENUITEM_ID.iteritems()])
+		self.MENUITEM_ID_TO_TRIGGER_TYPE = dict([(b,a) for (a,b) in self.TRIGGER_TYPE_TO_MENUITEM_ID.items()])
 		# update all values
 		self.update_all_values()
 
@@ -591,12 +591,12 @@ class MainFrame(wx.Frame):
 			channel = "B"
 		data = self.ms2601b.get_spectrum_data(channel)
 		if event.GetId() == MENU_SPECTRUM_DUMP_A or event.GetId() == MENU_SPECTRUM_DUMP_B:
-			print data
+			print(data)
 		else:
 			f0 = self.ms2601b.get_start_frequency()
 			f1 = self.ms2601b.get_stop_frequency()
 			df = f1-f0
-			f_range = [f0+float(i)/float(len(data)-1)*df for i in xrange(len(data))]
+			f_range = [f0+float(i)/float(len(data)-1)*df for i in range(len(data))]
 			pylab.title("SA data")
 			pylab.xlabel("Frequency [Hz]")
 			pylab.ylabel("Magnitude [%s]" % self.ms2601b.get_unit())

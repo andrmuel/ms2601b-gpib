@@ -44,7 +44,7 @@ class PrologixGPIB:
 		self.device.close()
 
 	def write(self, string):
-		print ">>> "+string,
+		print(">>> "+string, end=' ')
 		self.device.write(string)
 
 	def read(self):
@@ -105,7 +105,7 @@ class PrologixGPIB:
 		while True:
 			line = self.read().strip()
 			if len(line) > 0:
-				print "<<< "+line
+				print("<<< "+line)
 				return line
 			elif i<10:
 				time.sleep(0.1)
@@ -128,11 +128,11 @@ class PrologixGPIB:
 			except:
 				time.sleep(0.1)
 				pass
-		print "receiving loose data ..."
-		for i in xrange(10):
+		print("receiving loose data ...")
+		for i in range(10):
 			time.sleep(1)
 			x = self.read()
-			print "got %d bytes ..." % len(x)
+			print("got %d bytes ..." % len(x))
 		return data
 
 	def command(self, command, read_answer=False):
