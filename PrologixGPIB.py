@@ -14,6 +14,7 @@ import termios
 import fcntl
 import os
 import time
+import sys
 
 DEVICE = "/dev/ttyUSB0"
 
@@ -44,7 +45,7 @@ class PrologixGPIB:
 		self.device.close()
 
 	def write(self, string):
-		print(">>> "+string, end=' ')
+		sys.stdout.write(">>> "+string)
 		self.device.write(string)
 
 	def read(self):
