@@ -105,7 +105,7 @@ class MS2601B:
 	AVERAGE_RATES_INV = dict([(b,a) for (a,b) in AVERAGE_RATES.items()])
 
 	# A - B mode
-	A_MINUS_B_MODES = {"Off": 0, "A-B → A": 1, "A-SA → A": 2, "B-SB → B": 3}
+	A_MINUS_B_MODES = {"Off": 0, u"A-B → A": 1, u"A-SA → A": 2, u"B-SB → B": 3}
 	A_MINUS_B_MODES_INV = dict([(b,a) for (a,b) in A_MINUS_B_MODES.items()])
 
 	# det modes
