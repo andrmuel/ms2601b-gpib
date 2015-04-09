@@ -16,7 +16,7 @@ import os
 import time
 import sys
 
-DEVICE = "/dev/ttyUSB0"
+DEVICE = "/dev/prologix-gpib"
 
 class PrologixGPIB:
 	"""
