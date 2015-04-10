@@ -258,7 +258,11 @@ class MS2601B:
 		self.set_binary(binary)
 		self.send("XM%c? %d,%d" % (channel, start_address, count))
 		if binary==False:
-			values = [float(value.strip().replace(" ","")) for value in self.gpib.gpib_readlines(count)]
+			# note: for some reason, we get additional newlines (every second
+			# line), so currently we get twice the expected data points and
+			# ignore all empty (newline only) lines
+			data = self.gpib.gpib_readlines(count*2)
+			values = [float(value.strip().replace(" ","")) for value in data if value.strip() != '']
 		else:
 			values = []
 		return values
