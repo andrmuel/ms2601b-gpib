@@ -437,6 +437,15 @@ class MS2601B:
 	def marker_search(self, search_mode):
 		self._set_int_value("MKS", self.MARKER_SEARCH[search_mode])
 
+	def get_marker_position(self):
+		return self._get_int_value("CMK")
+
+	def get_marker_frequency(self):
+		return self._get_int_value("MKF")
+
+	def get_marker_level(self):
+		return self._get_float_value("MKL")
+
 	# zone sweep
 
 	def get_zone_sweep(self):
