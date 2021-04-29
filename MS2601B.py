@@ -262,6 +262,7 @@ class MS2601B:
 			# line), so currently we get twice the expected data points and
 			# ignore all empty (newline only) lines
 			data = self.gpib.gpib_readlines(count*2)
+			data = [line.decode('ascii') for line in data]
 			values = [float(value.strip().replace(" ","")) for value in data if value.strip() != '']
 		else:
 			values = []

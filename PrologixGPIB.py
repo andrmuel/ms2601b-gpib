@@ -25,7 +25,7 @@ class PrologixGPIB:
 
 	def __init__(self, addr=1):
 		# open device
-		self.device = open(DEVICE, "a+")
+		self.device = open(DEVICE, "rb+", buffering=0)
 		# configure tty settings
 		ttyattr = termios.tcgetattr(self.device)
 		ttyattr[2] = ttyattr[2] | termios.PARENB | termios.CS8	#cfloag
@@ -46,13 +46,13 @@ class PrologixGPIB:
 
 	def write(self, string):
 		sys.stdout.write(">>> "+string)
-		self.device.write(string)
+		self.device.write(string.encode("ascii"))
 
 	def read(self):
 		data = []
 		try:
 			while True:
-				data.append(self.device.readline())
+				data.append(self.device.readline().decode("ascii"))
 		except:
 			pass
 		return "".join(data)
