@@ -18,6 +18,7 @@ import sys
 
 DEVICE = "/dev/prologix-gpib"
 
+
 class PrologixGPIB:
 	"""
 	Class to control the Prologix GPIB USB interface.
@@ -28,10 +29,10 @@ class PrologixGPIB:
 		self.device = open(DEVICE, "rb+", buffering=0)
 		# configure tty settings
 		ttyattr = termios.tcgetattr(self.device)
-		ttyattr[2] = ttyattr[2] | termios.PARENB | termios.CS8	#cfloag
-		ttyattr[4] = termios.B9600	#ispeed
-		ttyattr[5] = termios.B9600	#ospeed
-		termios.tcsetattr(self.device,termios.TCSANOW,ttyattr)
+		ttyattr[2] = ttyattr[2] | termios.PARENB | termios.CS8  # cfloag
+		ttyattr[4] = termios.B9600  # ispeed
+		ttyattr[5] = termios.B9600  # ospeed
+		termios.tcsetattr(self.device, termios.TCSANOW, ttyattr)
 		# make device read non-blocking
 		fd = self.device.fileno()
 		fl = fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -45,7 +46,7 @@ class PrologixGPIB:
 		self.device.close()
 
 	def write(self, string):
-		sys.stdout.write(">>> "+string)
+		sys.stdout.write(">>> " + string)
 		self.device.write(string.encode("ascii"))
 
 	def read(self):
@@ -97,7 +98,6 @@ class PrologixGPIB:
 	def gpib_send_clr(self):
 		self.send_prologix_command("clr")
 
-
 	def gpib_readline(self):
 		self.read()
 		self.send_prologix_command("read 10")
@@ -106,22 +106,22 @@ class PrologixGPIB:
 		while True:
 			line = self.read().strip()
 			if len(line) > 0:
-				print("<<< "+line)
+				print("<<< " + line)
 				return line
-			elif i<10:
+			elif i < 10:
 				time.sleep(0.1)
 				i += 1
 			else:
 				return ""
 
-	def gpib_readlines(self, count): # FIXME broken ..
+	def gpib_readlines(self, count):  # FIXME broken ..
 		self.read()
 		data = []
 		time.sleep(0.1)
 		self.send_prologix_command("read")
 		time.sleep(0.1)
 		i = 0
-		while i<count:
+		while i < count:
 			try:
 				data.append(self.device.readline())
 				time.sleep(0.01)

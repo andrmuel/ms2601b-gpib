@@ -13,10 +13,9 @@ MS2601B remote control via GPIB.
 import time
 
 import PrologixGPIB
-import code
 import IPython
 
-GPIB_ADDR=1
+GPIB_ADDR = 1
 
 
 class MS2601B:
@@ -26,13 +25,13 @@ class MS2601B:
 
 	# line terminator
 	TERMINATORS = {"LF": 0, "CR": 1, "CR/LF": 2}
-	TERMINATORS_INV = dict([(b,a) for (a,b) in TERMINATORS.items()])
+	TERMINATORS_INV = dict([(b, a) for (a, b) in TERMINATORS.items()])
 
 	# number of points in spectrum data
 	SPECTRUM_DATA_POINTS = 501
 
 	# reference level
-	REF_LEVEL_MIN = -100 # TODO only works with dBm
+	REF_LEVEL_MIN = -100  # TODO only works with dBm
 	REF_LEVEL_MAX = 20
 
 	# frequency
@@ -43,74 +42,126 @@ class MS2601B:
 
 	# marker
 	MARKER = {"Normal": 0, "Delta": 1, "Off": 2}
-	MARKER_INV = dict([(b,a) for (a,b) in MARKER.items()])
+	MARKER_INV = dict([(b, a) for (a, b) in MARKER.items()])
 
 	# marker width
 	MARKER_WIDTH = {"Narrow": 0, "Spot": 1, "Wide": 2, "Dip. Narrow": 3, "Dip. Wide": 4}
-	MARKER_WIDTH_INV = dict([(b,a) for (a,b) in MARKER_WIDTH.items()])
+	MARKER_WIDTH_INV = dict([(b, a) for (a, b) in MARKER_WIDTH.items()])
 
 	# marker search
-	MARKER_SEARCH = {"Peak": 0, "Next peak": 1, "Minimum": 2, "Left peak": 3, "Center peak": 4, "Right peak": 5, "Left minimum": 6, "Center minimum": 7, "Right minimum": 8}
+	MARKER_SEARCH = {
+		"Peak": 0,
+		"Next peak": 1,
+		"Minimum": 2,
+		"Left peak": 3,
+		"Center peak": 4,
+		"Right peak": 5,
+		"Left minimum": 6,
+		"Center minimum": 7,
+		"Right minimum": 8
+	}
 
 	# calibration modes
 	CAL_MODES = {"ALL": 0, "FREQ": 1, "LEVEL (1)": 2, "LEVEL (2)": 3}
-	CAL_MODES_INV = dict([(b,a) for (a,b) in CAL_MODES.items()])
+	CAL_MODES_INV = dict([(b, a) for (a, b) in CAL_MODES.items()])
 
 	# scales
-	SCALE = { "1 dB": 0, "2 dB": 1, "5 dB": 2, "10 dB": 3, "Linear": 4}
-	SCALE_INV = dict([(b,a) for (a,b) in SCALE.items()])
+	SCALE = {"1 dB": 0, "2 dB": 1, "5 dB": 2, "10 dB": 3, "Linear": 4}
+	SCALE_INV = dict([(b, a) for (a, b) in SCALE.items()])
 
 	# units
 	UNITS = {'dBm': 0, 'dBµV': 1, 'dBV': 2, 'V': 3, 'dBµV (emf)': 4, 'dBµV/m': 5}
-	UNITS_INV = dict([(b,a) for (a,b) in UNITS.items()])
+	UNITS_INV = dict([(b, a) for (a, b) in UNITS.items()])
 
 	# reference line
-	REF_LINE = {"Top": 0, "Middle": 1, "Bottom" : 2}
-	REF_LINE_INV = dict([(b,a) for (a,b) in REF_LINE.items()])
+	REF_LINE = {"Top": 0, "Middle": 1, "Bottom": 2}
+	REF_LINE_INV = dict([(b, a) for (a, b) in REF_LINE.items()])
 
 	# resolution bandwidth
-	RES_BW = {"30 Hz": 0, "100 Hz": 1, "300 Hz": 2, "1 kHz": 3, "3 kHz": 4, "10 kHz": 5, "30 kHz": 6, "100 kHz": 7, "300 kHz": 8, "1 MHz": 9, "200 Hz": 10, "9 kHz": 11, "120 kHz": 12}
-	RES_BW_INV = dict([(b,a) for (a,b) in RES_BW.items()])
+	RES_BW = {
+		"30 Hz": 0,
+		"100 Hz": 1,
+		"300 Hz": 2,
+		"1 kHz": 3,
+		"3 kHz": 4,
+		"10 kHz": 5,
+		"30 kHz": 6,
+		"100 kHz": 7,
+		"300 kHz": 8,
+		"1 MHz": 9,
+		"200 Hz": 10,
+		"9 kHz": 11,
+		"120 kHz": 12
+	}
+	RES_BW_INV = dict([(b, a) for (a, b) in RES_BW.items()])
 
 	# attenuation
 	ATTEN = {"0 dB": 0, "10 dB": 1, "20 dB": 2, "30 dB": 3, "40 dB": 4, "50 dB": 5}
-	ATTEN_INV = dict([(b,a) for (a,b) in ATTEN.items()])
+	ATTEN_INV = dict([(b, a) for (a, b) in ATTEN.items()])
 
 	# sweep time
-	SWEEP_TIME = {"1000 s": 1e6, "700 s": 7e5, "500 s": 5e5, "300 s": 3e5, "200 s": 2e5, "150 s": 1.5e5, "100 s": 1e5, "70 s": 7e4, "50 s": 5e4, "30 s": 3e4, "20 s": 2e4, "15 s": 1.5e4, "10 s": 1e4, "7 s": 7000, "5 s": 5000, "3 s": 3000, "2 s": 2000, "1.5 s": 1500, "1 s": 1000, "700 ms": 700, "500 ms": 500, "300 ms": 300, "200 ms": 200, "150 ms": 150, "100 ms": 100, "70 ms": 70, "50 ms": 50}
-	SWEEP_TIME_INV = dict([(b,a) for (a,b) in SWEEP_TIME.items()])
+	SWEEP_TIME = {
+		"1000 s": 1e6,
+		"700 s": 7e5,
+		"500 s": 5e5,
+		"300 s": 3e5,
+		"200 s": 2e5,
+		"150 s": 1.5e5,
+		"100 s": 1e5,
+		"70 s": 7e4,
+		"50 s": 5e4,
+		"30 s": 3e4,
+		"20 s": 2e4,
+		"15 s": 1.5e4,
+		"10 s": 1e4,
+		"7 s": 7000,
+		"5 s": 5000,
+		"3 s": 3000,
+		"2 s": 2000,
+		"1.5 s": 1500,
+		"1 s": 1000,
+		"700 ms": 700,
+		"500 ms": 500,
+		"300 ms": 300,
+		"200 ms": 200,
+		"150 ms": 150,
+		"100 ms": 100,
+		"70 ms": 70,
+		"50 ms": 50
+	}
+	SWEEP_TIME_INV = dict([(b, a) for (a, b) in SWEEP_TIME.items()])
 
 	# video bandwidth
 	VIDEO_BW = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2, "1 kHz": 3, "10 kHz": 4, "100 kHz": 5, "OFF": 6}
-	VIDEO_BW_INV = dict([(b,a) for (a,b) in VIDEO_BW.items()])
+	VIDEO_BW_INV = dict([(b, a) for (a, b) in VIDEO_BW.items()])
 
 	# antennas
 	ANTENNAS = {"DIPOLE": 0, "LOG-PERIODIC (1)": 1, "LOG-PERIODIC (2)": 2, "LOOP": 3, "USER": 4, "OFF": 5}
-	ANTENNAS_INV = dict([(b,a) for (a,b) in ANTENNAS.items()])
+	ANTENNAS_INV = dict([(b, a) for (a, b) in ANTENNAS.items()])
 
 	# trigger types
 	TRIGGER_TYPES = {"FREE": 0, "VIDEO": 1, "LINE": 2, "EXT": 3, "SINGLE": 4, "START": 5}
-	TRIGGER_TYPES_INV = dict([(b,a) for (a,b) in TRIGGER_TYPES.items()])
+	TRIGGER_TYPES_INV = dict([(b, a) for (a, b) in TRIGGER_TYPES.items()])
 
 	# frequency counter resolutions
 	FREQ_COUNT_RES = {"1 Hz": 0, "10 Hz": 1, "100 Hz": 2}
-	FREQ_COUNT_RES_INV = dict([(b,a) for (a,b) in FREQ_COUNT_RES.items()])
+	FREQ_COUNT_RES_INV = dict([(b, a) for (a, b) in FREQ_COUNT_RES.items()])
 
 	# write modes
-	WRITE_MODES = {"Normal":0, "Max hold":1, "Average":2, "Min hold":3, "Cumulative":4, "Overwrite":5}
-	WRITE_MODES_INV = dict([(b,a) for (a,b) in WRITE_MODES.items()])
+	WRITE_MODES = {"Normal": 0, "Max hold": 1, "Average": 2, "Min hold": 3, "Cumulative": 4, "Overwrite": 5}
+	WRITE_MODES_INV = dict([(b, a) for (a, b) in WRITE_MODES.items()])
 
 	# average rates
-	AVERAGE_RATES = {"4":0, "8":1, "16":2, "32":3, "128":4}
-	AVERAGE_RATES_INV = dict([(b,a) for (a,b) in AVERAGE_RATES.items()])
+	AVERAGE_RATES = {"4": 0, "8": 1, "16": 2, "32": 3, "128": 4}
+	AVERAGE_RATES_INV = dict([(b, a) for (a, b) in AVERAGE_RATES.items()])
 
 	# A - B mode
 	A_MINUS_B_MODES = {"Off": 0, u"A-B → A": 1, u"A-SA → A": 2, u"B-SB → B": 3}
-	A_MINUS_B_MODES_INV = dict([(b,a) for (a,b) in A_MINUS_B_MODES.items()])
+	A_MINUS_B_MODES_INV = dict([(b, a) for (a, b) in A_MINUS_B_MODES.items()])
 
 	# det modes
 	DET_MODES = {"Peak": 0, "Sample": 1, "Dip": 2}
-	DET_MODES_INV =  dict([(b,a) for (a,b) in DET_MODES.items()])
+	DET_MODES_INV = dict([(b, a) for (a, b) in DET_MODES.items()])
 
 	def __init__(self):
 		self.gpib = PrologixGPIB.PrologixGPIB(GPIB_ADDR)
@@ -161,14 +212,14 @@ class MS2601B:
 		return self.gpib.command(command, read_answer)
 
 	def get_int_value(self, command):
-		answer = self.command(command+"?", read_answer=True)
+		answer = self.command(command + "?", read_answer=True)
 		return int(answer.split(" ")[-1])
 
 	def set_int_value(self, command, value):
 		self.command("%s %d" % (command, value))
 
 	def get_float_value(self, command):
-		answer = self.command(command+"?", read_answer=True)
+		answer = self.command(command + "?", read_answer=True)
 		return float(answer.split(" ")[-1])
 
 	def set_float_value(self, command, value):
@@ -183,7 +234,7 @@ class MS2601B:
 		time.sleep(0.5)
 		self.binary = False
 		self.binary_dirty = False
-		self.center_freq = self.MAX_FREQ/2
+		self.center_freq = self.MAX_FREQ / 2
 		self.center_freq_dirty = False
 		self.start_freq = self.MIN_FREQ
 		self.start_freq_dirty = False
@@ -249,7 +300,7 @@ class MS2601B:
 	def get_spectrum_data(self, channel, start_address=0, count=SPECTRUM_DATA_POINTS, binary=False):
 		channel = channel.upper()
 		assert start_address >= 0 and start_address <= 500
-		assert start_address+count-1 <= 500
+		assert start_address + count - 1 <= 500
 		assert channel == "A" or channel == "B"
 		if channel == "A":
 			self.set_channel_a_write(0)
@@ -257,13 +308,13 @@ class MS2601B:
 			self.set_channel_b_write(0)
 		self.set_binary(binary)
 		self.send("XM%c? %d,%d" % (channel, start_address, count))
-		if binary==False:
+		if not binary:
 			# note: for some reason, we get additional newlines (every second
 			# line), so currently we get twice the expected data points and
 			# ignore all empty (newline only) lines
-			data = self.gpib.gpib_readlines(count*2)
+			data = self.gpib.gpib_readlines(count * 2)
 			data = [line.decode('ascii') for line in data]
-			values = [float(value.strip().replace(" ","")) for value in data if value.strip() != '']
+			values = [float(value.strip().replace(" ", "")) for value in data if value.strip() != '']
 		else:
 			values = []
 		return values
@@ -278,7 +329,6 @@ class MS2601B:
 		self.binary = binary
 		self.binary_dirty = False
 		self.set_int_value("BIN", int(binary))
-
 
 	#
 	# level
@@ -338,13 +388,13 @@ class MS2601B:
 		self.set_int_value("STF", start_freq)
 
 	def get_stop_frequency(self):
-		return self.get_start_frequency()+self.get_span()
+		return self.get_start_frequency() + self.get_span()
 
 	def set_stop_frequency(self, stop_freq):
 		assert stop_freq >= self.MIN_FREQ and stop_freq <= self.MAX_FREQ
 		start_freq = self.get_start_frequency()
 		assert stop_freq >= start_freq
-		span = stop_freq-start_freq
+		span = stop_freq - start_freq
 		self.set_span(span)
 		self.set_start_frequency(start_freq)
 
@@ -667,7 +717,6 @@ class MS2601B:
 		self.freq_count_resolution = resolution
 		self.freq_count_enabled_dirty = False
 
-
 	#
 	# trace
 	#
@@ -802,7 +851,7 @@ class MS2601B:
 
 	def set_quasi_peak_enabled(self, enabled):
 		self.quasi_peak = enabled
-		self.quasi_peak_dirty = True # setting may fail
+		self.quasi_peak_dirty = True  # setting may fail
 		self.set_int_value("QPD", int(enabled))
 
 	#
@@ -816,6 +865,4 @@ class MS2601B:
 
 if __name__ == "__main__":
 	ms2601b = MS2601B()
-	# interpreter = code.InteractiveConsole(globals())
-	# interpreter.interact("Starting Python console  ...")
 	IPython.embed()
