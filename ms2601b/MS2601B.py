@@ -12,7 +12,7 @@ MS2601B remote control via GPIB.
 
 import time
 
-import PrologixGPIB
+from ms2601b import PrologixGPIB
 import IPython
 
 GPIB_ADDR = 1
